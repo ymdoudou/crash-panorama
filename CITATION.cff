@@ -16,8 +16,8 @@ authors:
   - family-names: Li
     given-names: Xinrong
     affiliation: InAI Capital Advisor LLC
-license-url: https://github.com/INAICAPITAL/crash-panorama/blob/main/LICENSE
-repository-code: https://github.com/INAICAPITAL/crash-panorama
+license-url: https://github.com/ymdoudou/crash-panorama/blob/main/LICENSE
+repository-code: https://github.com/ymdoudou/crash-panorama
 keywords:
   - valuation dispersion
   - value spread
