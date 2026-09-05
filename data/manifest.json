@@ -1,0 +1,71 @@
+{
+ "frozen_at": "2026-08-28 03:07",
+ "window": [
+  "2024-01-01",
+  "2026-08-26"
+ ],
+ "why_this_window": "2024-01-01 让三个此前互不对齐的窗口首次重合：周度全景 2024-W01 / 事件集 2024-01-02 / Layer1-2 序列在此已过 250 日暖机。",
+ "why_frozen": "episodes_causal 依赖人工维护的 p_sector.json，成分一变全部历史事件指标被追溯改写；而它是全部阈值的标定基准。",
+ "p_sector": {
+  "count": 525,
+  "generated": "2026-08-18T13:35:10+08:00",
+  "membership_updated": "2026-08-24",
+  "note": "冻结的是这 525 只的**具体名单**，不是「525」这个数"
+ },
+ "episodes": {
+  "n": 12,
+  "tiers": {
+   "SEVERE": 6,
+   "MODERATE": 5,
+   "MILD": 1
+  },
+  "numbering": "1..12，原 causal id 见 src_id；生产台账从 13 续编",
+  "excluded_n": 2
+ },
+ "gate_days": 642,
+ "ohlcv_as_of": "2026-08-26",
+ "files": {
+  "episodes_paper.json": {
+   "sha256_16": "762cf8df08d0051a",
+   "kb": 15
+  },
+  "p_sector_paper.json": {
+   "sha256_16": "2d1e5822a7b92ab7",
+   "kb": 84
+  },
+  "gate_paper.json": {
+   "sha256_16": "b9e3e96fd1cc8e18",
+   "kb": 219
+  },
+  "d_matrix_paper.json": {
+   "sha256_16": "77af7fa9d0e105af",
+   "kb": 978
+  },
+  "tearing_paper.json": {
+   "sha256_16": "8841fa69645f491f",
+   "kb": 161,
+   "derived": true,
+   "desc": "gap / d_tech / d_trad 逐日序列与扩展窗口秩，截至冻结窗"
+  },
+  "taxonomy_paper.json": {
+   "sha256_16": "9cb855a7724a36f7",
+   "kb": 11,
+   "derived": true,
+   "desc": "行业分类对照事实（自建口径 vs 申万 vs 证监会），封存时刻取值"
+  },
+  "bw_paper.json": {
+   "sha256_16": "8f19181740e7485f",
+   "kb": 13,
+   "derived": true,
+   "desc": "Bit-Watt 分类索引：科技行业、板块 Zone、Bit/Support、链条例外"
+  },
+  "gate_params_paper.json": {
+   "sha256_16": "7552248bcf1b2b2b",
+   "kb": 3,
+   "derived": true,
+   "desc": "三层系统全部阈值及其出处与标定方式，封存时刻取值"
+  }
+ },
+ "contract": "冻结区只读。任何一个 sha256 变了 → 论文里所有阈值与结论都需重新核对。",
+ "derived_note": "标 derived 的文件由 paper_freeze.py 从日频生产文件截到冻结窗派生，可重新生成；未标的四个为原始封存件，受 contract 约束只读。"
+}

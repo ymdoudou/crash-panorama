@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: 若本仓库对你的研究有帮助，请按下列方式引用。
+title: "估值撕裂与深度下跌：A 股 AI 经济板块的前兆度量与三层监测（数据集与代码）"
+abstract: >-
+  本仓库随同名研究报告发布冻结数据集与构造代码。数据涵盖 2024-01-01 至
+  2026-08-26 共 642 个交易日，含 12 个深度下跌事件的台账、三层监测量的
+  逐日序列、科技与传统行业的估值撕裂序列（gap），以及全部阈值的标定结果。
+  代码为这些量的构造实现。仓库支持验证级复现：报告中的每一个数字都可由
+  reproduce.py 从本仓库数据重算并逐项比对。
+type: dataset
+authors:
+  - family-names: Dou
+    given-names: Yumei
+    affiliation: InAI Capital Advisor LLC
+    email: yumei.dou@inaicapital.com
+  - family-names: Li
+    given-names: Xinrong
+    affiliation: InAI Capital Advisor LLC
+license-url: https://github.com/INAICAPITAL/crash-panorama/blob/main/LICENSE
+repository-code: https://github.com/INAICAPITAL/crash-panorama
+keywords:
+  - valuation dispersion
+  - value spread
+  - early warning system
+  - market drawdown
+  - China A-shares
+  - regime shift

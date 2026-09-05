@@ -1,0 +1,175 @@
+{
+ "generated": "2026-09-05 14:23",
+ "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
+ "data": [
+  {
+   "file": "episodes_paper.json",
+   "src": "stock_cache/frozen/episodes_paper.json",
+   "bytes": 15777,
+   "sha256": "762cf8df08d0051a",
+   "desc": "深度下跌事件台账：起止、峰日、严重度、形态、五通道取值"
+  },
+  {
+   "file": "gate_paper.json",
+   "src": "stock_cache/frozen/gate_paper.json",
+   "bytes": 224339,
+   "sha256": "b9e3e96fd1cc8e18",
+   "desc": "三层判定量逐日序列：T / pT / pS / risk / SI / 四应力分量 / 判档"
+  },
+  {
+   "file": "p_sector_paper.json",
+   "src": "stock_cache/frozen/p_sector_paper.json",
+   "bytes": 85631,
+   "sha256": "2d1e5822a7b92ab7",
+   "desc": "P 集合成分快照：逐股的板块、链条、Zone 归属"
+  },
+  {
+   "file": "d_matrix_paper.json",
+   "src": "stock_cache/frozen/d_matrix_paper.json",
+   "bytes": 1001168,
+   "sha256": "77af7fa9d0e105af",
+   "desc": "周度板块矩阵：逐周逐板块的回撤、r60、峰日密度"
+  },
+  {
+   "file": "tearing_paper.json",
+   "src": "stock_cache/frozen/tearing_paper.json",
+   "bytes": 164920,
+   "sha256": "8841fa69645f491f",
+   "desc": "gap / d_tech / d_trad 逐日序列与扩展窗口秩，截至冻结窗"
+  },
+  {
+   "file": "bw_paper.json",
+   "src": "stock_cache/frozen/bw_paper.json",
+   "bytes": 14076,
+   "sha256": "8f19181740e7485f",
+   "desc": "Bit-Watt 分类索引：科技行业、板块 Zone、Bit/Support、链条例外"
+  },
+  {
+   "file": "taxonomy_paper.json",
+   "src": "stock_cache/frozen/taxonomy_paper.json",
+   "bytes": 11284,
+   "sha256": "9cb855a7724a36f7",
+   "desc": "行业分类对照事实（自建口径 vs 申万 vs 证监会）"
+  },
+  {
+   "file": "calibration.json",
+   "src": "stock_cache/frozen/calibration.json",
+   "bytes": 3956,
+   "sha256": "cc8ee8c99c1623db",
+   "desc": "在冻结集上重新标定的结果，与生产常数的对账"
+  },
+  {
+   "file": "manifest.json",
+   "src": "stock_cache/frozen/manifest.json",
+   "bytes": 2269,
+   "sha256": "b4db83bb06229333",
+   "desc": "冻结区清单：窗口、数据截止日、封存时刻、逐文件指纹"
+  },
+  {
+   "file": "gate_params.json",
+   "src": "stock_cache/frozen/gate_params_paper.json",
+   "bytes": 3490,
+   "sha256": "7552248bcf1b2b2b",
+   "desc": "全部阈值及其出处与标定方式"
+  }
+ ],
+ "code": [
+  {
+   "file": "crash_episode_builder.py",
+   "src": "stock_cache/crash_episode_builder.py",
+   "group": "事件识别",
+   "bytes": 18746,
+   "sha256": "f54d035d737b22ad",
+   "desc": "五通道 z-score 识别深度下跌事件，零 T 依赖"
+  },
+  {
+   "file": "episode_ledger.py",
+   "src": "stock_cache/episode_ledger.py",
+   "group": "事件识别",
+   "bytes": 7371,
+   "sha256": "14944d1f43f83bef",
+   "desc": "只追加的事件台账"
+  },
+  {
+   "file": "t_causal_builder.py",
+   "src": "stock_cache/t_causal_builder.py",
+   "group": "度量构造",
+   "bytes": 26846,
+   "sha256": "52097c9e0f0e8be8",
+   "desc": "系统温度 T 的因果构造"
+  },
+  {
+   "file": "tearing_builder.py",
+   "src": "stock_cache/tearing_builder.py",
+   "group": "度量构造",
+   "bytes": 12904,
+   "sha256": "16e114ee7162b979",
+   "desc": "gap 的构造与前瞻判别力评估"
+  },
+  {
+   "file": "cap_history_builder.py",
+   "src": "stock_cache/cap_history_builder.py",
+   "group": "度量构造",
+   "bytes": 9564,
+   "sha256": "73e8c129f89a56ad",
+   "desc": "逐季 cap 与覆盖率闸门"
+  },
+  {
+   "file": "cap_accessor.py",
+   "src": "stock_cache/cap_accessor.py",
+   "group": "访问层",
+   "bytes": 11601,
+   "sha256": "56734ee465e7f3ad",
+   "desc": "cap 的因果访问层"
+  },
+  {
+   "file": "price_accessor.py",
+   "src": "stock_cache/price_accessor.py",
+   "group": "访问层",
+   "bytes": 9415,
+   "sha256": "0d04bdd4c8b7b9cd",
+   "desc": "价格三口径的统一访问器"
+  },
+  {
+   "file": "share_factor.py",
+   "src": "stock_cache/share_factor.py",
+   "group": "访问层",
+   "bytes": 6116,
+   "sha256": "7d31ecbe8898f0b0",
+   "desc": "送转复权因子，回撤与 cap 的口径修正"
+  },
+  {
+   "file": "gate_params.py",
+   "src": "stock_cache/gate_params.py",
+   "group": "访问层",
+   "bytes": 3832,
+   "sha256": "8e615ba9d8f389b1",
+   "desc": "阈值的唯一权威读取层"
+  },
+  {
+   "file": "tech_lock.py",
+   "src": "stock_cache/tech_lock.py",
+   "group": "访问层",
+   "bytes": 4800,
+   "sha256": "57a61a1b50c2bea2",
+   "desc": "科技行业名单的指纹上锁，tearing_builder 依赖它"
+  },
+  {
+   "file": "crash_gate_builder.py",
+   "src": "stock_cache/crash_gate_builder.py",
+   "group": "三层判定量",
+   "bytes": 33662,
+   "sha256": "5b1b716e7035c5eb",
+   "desc": "Layer1 检测 + Layer2 定级"
+  },
+  {
+   "file": "early_warning_builder.py",
+   "src": "stock_cache/early_warning_builder.py",
+   "group": "三层判定量",
+   "bytes": 14140,
+   "sha256": "dca64279f84c961b",
+   "desc": "Layer0 前瞻"
+  }
+ ],
+ "missing": []
+}

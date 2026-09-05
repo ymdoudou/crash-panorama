@@ -1,0 +1,253 @@
+{
+ "generated": "2026-09-04 07:37",
+ "window": [
+  "2024-01-01",
+  "2026-08-26"
+ ],
+ "n_episodes": 12,
+ "tiers": {
+  "SEVERE": 6,
+  "MODERATE": 5,
+  "MILD": 1
+ },
+ "n_days": 642,
+ "lead_window": 10,
+ "production_constants": {
+  "layer1": 0.65,
+  "layer2": 0.4,
+  "layer0": 0.66,
+  "band_elevated": 0.2,
+  "w_T": 0.45
+ },
+ "calib": {
+  "layer1": {
+   "loeo_med": 0.65,
+   "loeo_range": [
+    0.65,
+    0.66
+   ],
+   "sigma": 0.0037,
+   "stable": true,
+   "recall": "6/6",
+   "n_reach": 6,
+   "alarm_rate": 31.8,
+   "leads": [
+    0,
+    0,
+    1,
+    3,
+    8,
+    10
+   ],
+   "lead_sum": 22,
+   "folds": [
+    {
+     "ep": 1,
+     "thr": 0.66,
+     "train_rec": 5,
+     "train_n": 5,
+     "train_rate": 29.9,
+     "hit": false,
+     "lead": null
+    },
+    {
+     "ep": 6,
+     "thr": 0.65,
+     "train_rec": 5,
+     "train_n": 5,
+     "train_rate": 31.8,
+     "hit": true,
+     "lead": 8
+    },
+    {
+     "ep": 8,
+     "thr": 0.65,
+     "train_rec": 5,
+     "train_n": 5,
+     "train_rate": 31.8,
+     "hit": true,
+     "lead": 1
+    },
+    {
+     "ep": 9,
+     "thr": 0.65,
+     "train_rec": 5,
+     "train_n": 5,
+     "train_rate": 31.8,
+     "hit": true,
+     "lead": 3
+    },
+    {
+     "ep": 10,
+     "thr": 0.65,
+     "train_rec": 5,
+     "train_n": 5,
+     "train_rate": 31.8,
+     "hit": true,
+     "lead": 0
+    },
+    {
+     "ep": 12,
+     "thr": 0.65,
+     "train_rec": 5,
+     "train_n": 5,
+     "train_rate": 31.8,
+     "hit": true,
+     "lead": 10
+    }
+   ],
+   "name": "risk",
+   "value": 0.65
+  },
+  "layer2": {
+   "feasible": [
+    0.2487,
+    0.4109
+   ],
+   "separable": true,
+   "stable": true,
+   "maxSI": [
+    {
+     "id": 1,
+     "tier": "SEVERE",
+     "maxSI": 0.4501
+    },
+    {
+     "id": 2,
+     "tier": "MODERATE",
+     "maxSI": 0.2487
+    },
+    {
+     "id": 3,
+     "tier": "MILD",
+     "maxSI": 0.2334
+    },
+    {
+     "id": 4,
+     "tier": "MODERATE",
+     "maxSI": null
+    },
+    {
+     "id": 5,
+     "tier": "MODERATE",
+     "maxSI": null
+    },
+    {
+     "id": 6,
+     "tier": "SEVERE",
+     "maxSI": 0.5481
+    },
+    {
+     "id": 7,
+     "tier": "MODERATE",
+     "maxSI": null
+    },
+    {
+     "id": 8,
+     "tier": "SEVERE",
+     "maxSI": 0.6891
+    },
+    {
+     "id": 9,
+     "tier": "SEVERE",
+     "maxSI": 0.4109
+    },
+    {
+     "id": 10,
+     "tier": "SEVERE",
+     "maxSI": 0.4884
+    },
+    {
+     "id": 11,
+     "tier": "MODERATE",
+     "maxSI": 0.1893
+    },
+    {
+     "id": 12,
+     "tier": "SEVERE",
+     "maxSI": 0.4824
+    }
+   ],
+   "name": "SI critical",
+   "value": 0.4
+  },
+  "layer0": {
+   "loeo_med": 0.66,
+   "loeo_range": [
+    0.66,
+    0.76
+   ],
+   "sigma": 0.0373,
+   "stable": true,
+   "recall": "4/6",
+   "n_reach": 6,
+   "alarm_rate": 34.6,
+   "leads": [
+    7,
+    10,
+    10,
+    10
+   ],
+   "lead_sum": 37,
+   "folds": [
+    {
+     "ep": 1,
+     "thr": 0.66,
+     "train_rec": 4,
+     "train_n": 5,
+     "train_rate": 34.6,
+     "hit": false,
+     "lead": null
+    },
+    {
+     "ep": 6,
+     "thr": 0.66,
+     "train_rec": 3,
+     "train_n": 5,
+     "train_rate": 34.6,
+     "hit": true,
+     "lead": 10
+    },
+    {
+     "ep": 8,
+     "thr": 0.76,
+     "train_rec": 3,
+     "train_n": 5,
+     "train_rate": 16.0,
+     "hit": false,
+     "lead": null
+    },
+    {
+     "ep": 9,
+     "thr": 0.66,
+     "train_rec": 3,
+     "train_n": 5,
+     "train_rate": 34.6,
+     "hit": true,
+     "lead": 10
+    },
+    {
+     "ep": 10,
+     "thr": 0.66,
+     "train_rec": 4,
+     "train_n": 5,
+     "train_rate": 34.6,
+     "hit": false,
+     "lead": null
+    },
+    {
+     "ep": 12,
+     "thr": 0.66,
+     "train_rec": 3,
+     "train_n": 5,
+     "train_rate": 34.6,
+     "hit": true,
+     "lead": 10
+    }
+   ],
+   "name": "EW_WATCH",
+   "value": 0.66
+  }
+ },
+ "contract": "本文件是「在当前冻结集上重标会得到什么」的落盘结果。页面与论文引用的阈值从这里取，不手打。与生产常数是否一致由 verify_crash_panorama 的 calib/* 校验。"
+}
