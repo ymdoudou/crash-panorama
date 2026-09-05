@@ -162,17 +162,22 @@ def main():
     R = Report()
 
     # ── 1. 撕裂 gap 的逐年统计 ──
-    td = tear["daily"]
-    years = sorted({r["date"][:4] for r in td})
-    print(f"\n═══ 逐年 gap（{len(td)} 个交易日）═══")
+    td_all = tear["daily"]
+    years = sorted({r["date"][:4] for r in td_all})
+    print(f"\n═══ 逐年 gap（全序列 {len(td_all)} 个交易日，含窗口外的跨区制对照）═══")
     print(f"  {'年份':6s} {'交易日':>6s} {'gap 中位':>11s} {'科技更贵占比':>12s}")
     for y in years:
-        rows = [r for r in td if r["date"].startswith(y)]
+        rows = [r for r in td_all if r["date"].startswith(y)]
         g = [r["gap"] for r in rows if r.get("gap") is not None]
         pos = sum(1 for x in g if x > 0) / len(g) * 100 if g else 0
         print(f"  {y:6s} {len(rows):6d} {median(g):11.4f} {pos:11.1f}%")
 
     # ── 2. 撕裂各量的前瞻判别力 ──
+    # 冻结副本是**全序列快照**（2020 起），不是截到窗口的。
+    # 评估窗口写在 measured.eval.window 里，必须显式取出来筛，
+    # 否则会把窗口外的 900 多天也算进去（实测 n 从 390 变成 1296）。
+    EW0, EW1 = tear["measured"]["eval"]["window"]
+    td = [r for r in td_all if EW0 <= r["date"] <= EW1]
     dates = [r["date"] for r in td]
     lab_f, mask = labels_forecast(dates, eps, h)
     ms = tear["measured"]
@@ -201,6 +206,37 @@ def main():
             continue
         arrow = "检测强" if a_d > a_f else ("预报强" if a_f > a_d else "持平")
         print(f"  {fld:16s} {a_d:10.4f} {a_f:10.4f}   {arrow}")
+
+    # ── 3b. Layer0 前瞻层 ──
+    # 摘要引的前瞻 AUC 就出自这里；不核这一节，读者就核不了摘要里的那个数。
+    ew = [r for r in load("ew_paper.json")["daily"] if EW0 <= r["date"] <= EW1]
+    edates = [r["date"] for r in ew]
+    elf, emask = labels_forecast(edates, eps, h)
+    eld = labels_detect(edates, eps)
+    # 「低值代表危险」的量要取反，否则 AUC 会落在 0.5 以下、读起来像反向指标。
+    # 论文的 §7 判别力表用同一约定；两处不一致就没法逐项比对。
+    INVERT = {"p_price"}          # T 也属此类，但它在 gate_paper 那一节
+    print("\n═══ 第七部分：Layer0 前瞻层 ═══")
+    print(f"  {'量':16s} {'检测 AUC':>10s} {'预报 AUC':>10s}   覆盖   取向")
+    L0 = {}
+    for fld in ("ew_base", "ew_full", "p_price", "p_cover", "pT_fwd", "pS"):
+        n = sum(1 for r in ew if r.get(fld) is not None)
+        if not n:
+            continue
+        sgn = -1 if fld in INVERT else 1
+        vals = [None if r.get(fld) is None else sgn * r[fld] for r in ew]
+        a_d, a_f = auc(vals, eld), masked_auc(vals, elf, emask)
+        L0[fld] = (a_d, a_f)
+        print(f"  {fld:16s} {'—' if a_d is None else format(a_d, '10.4f')} "
+              f"{'—' if a_f is None else format(a_f, '10.4f')}   {n:4d} 日   "
+              f"{'低值危险，已取反' if sgn < 0 else ''}")
+    # 摘要与 §7 引的就是这四个数，必须断言，不能只打印
+    for fld, pd_, pf in (("ew_base", 0.4355, 0.8729), ("ew_full", 0.5693, 0.8751),
+                         ("p_price", 0.4075, 0.7999), ("p_cover", 0.7051, 0.7748)):
+        if fld in L0:
+            R.cmp(f"{fld} 检测 AUC", pd_, L0[fld][0])
+            R.cmp(f"{fld} 预报 AUC", pf, L0[fld][1])
+    R.show("第七部分：Layer0 前瞻层")
 
     # ── 4. Layer1 阈值的留一事件交叉验证 ──
     # 三处细节必须与论文的标定脚本一致，任何一处不同都会得到别的阈值：
