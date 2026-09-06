@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-05 16:57",
+ "generated": "2026-09-07 04:26",
  "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
  "data": [
   {
@@ -34,7 +34,7 @@
    "file": "tearing_paper.json",
    "src": "stock_cache/frozen/tearing_paper.json",
    "bytes": 392232,
-   "sha256": "7c4576b1e77d6149",
+   "sha256": "2f0ebcb28fb205f7",
    "desc": "gap / d_tech / d_trad 逐日序列与扩展窗口秩，截至冻结窗"
   },
   {
@@ -61,22 +61,22 @@
   {
    "file": "manifest.json",
    "src": "stock_cache/frozen/manifest.json",
-   "bytes": 2821,
-   "sha256": "c6751d6b735e4abd",
+   "bytes": 2792,
+   "sha256": "1605603bcc7a9068",
    "desc": "冻结区清单：窗口、数据截止日、封存时刻、逐文件指纹"
   },
   {
    "file": "ew_paper.json",
    "src": "stock_cache/frozen/ew_paper.json",
    "bytes": 348462,
-   "sha256": "a15d68c6b8cabc59",
+   "sha256": "0fa0c8a62285d129",
    "desc": "Layer0 前瞻逐日序列与四个分量；§7 的前瞻判别力由它算出"
   },
   {
    "file": "code_industry_paper.json",
    "src": "stock_cache/frozen/code_industry_paper.json",
-   "bytes": 144608,
-   "sha256": "f2f4204d5f1c7be8",
+   "bytes": 144609,
+   "sha256": "4a51c0640b0b9887",
    "desc": "个股 → 行业映射；§5.3 的盲点股计数由它算出"
   },
   {
@@ -108,8 +108,8 @@
    "file": "t_causal_builder.py",
    "src": "stock_cache/t_causal_builder.py",
    "group": "度量构造",
-   "bytes": 26846,
-   "sha256": "52097c9e0f0e8be8",
+   "bytes": 27029,
+   "sha256": "e1ea472466f9a9ae",
    "desc": "系统温度 T 的因果构造"
   },
   {
@@ -124,8 +124,8 @@
    "file": "cap_history_builder.py",
    "src": "stock_cache/cap_history_builder.py",
    "group": "度量构造",
-   "bytes": 9564,
-   "sha256": "73e8c129f89a56ad",
+   "bytes": 9523,
+   "sha256": "cde8ab6ec270d676",
    "desc": "逐季 cap 与覆盖率闸门"
   },
   {

@@ -62,7 +62,9 @@ from share_factor import ShareFactor
 BJT = ZoneInfo("Asia/Shanghai")
 OHLCV_DIR = BASE / "ohlcv_cache"
 STATEMENTS_DIR = SCRIPT_DIR / "financial" / "statements"
-MATRIX_PATH = SCRIPT_DIR / "m_pricing_matrix.json"
+# 只取 code → industry / sub_industry 的归类；
+# 本文件的 cap 一律经 cap_accessor 取自 historical_cap.json，不读此文件的估值字段。
+MATRIX_PATH = SCRIPT_DIR / "m_pricing_matrix.json"   # 行业归类来源
 OUT_PATH = SCRIPT_DIR / "t_causal.json"
 STOCK_VAL_PATH = SCRIPT_DIR / "stock_valuation_causal.json"
 

@@ -42,7 +42,7 @@
    "kb": 978
   },
   "tearing_paper.json": {
-   "sha256_16": "7c4576b1e77d6149",
+   "sha256_16": "2f0ebcb28fb205f7",
    "kb": 383,
    "derived": true,
    "desc": "gap / d_tech / d_trad 全序列快照与扩展窗口秩，评估窗口记在 measured.eval"
@@ -66,7 +66,7 @@
    "desc": "三层系统全部阈值及其出处与标定方式，封存时刻取值"
   },
   "ew_paper.json": {
-   "sha256_16": "a15d68c6b8cabc59",
+   "sha256_16": "0fa0c8a62285d129",
    "kb": 340,
    "derived": true,
    "desc": "Layer0 逐日序列；§7 的判别力表由它算出"
@@ -78,10 +78,10 @@
    "desc": "t_causal 投影：逐行业逐日取值与交易日序列（不进发布包）"
   },
   "code_industry_paper.json": {
-   "sha256_16": "f2f4204d5f1c7be8",
+   "sha256_16": "4a51c0640b0b9887",
    "kb": 141,
    "derived": true,
-   "desc": "个股 → 行业映射，m_pricing_matrix 的投影"
+   "desc": "个股 → 行业映射"
   }
  },
  "contract": "冻结区只读。任何一个 sha256 变了 → 论文里所有阈值与结论都需重新核对。",

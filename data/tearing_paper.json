@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-05 09:42",
+ "generated_at": "2026-09-05 17:41",
  "tech_sha": "a25c92186226be5b",
  "tech_lock": 1,
  "contract": "gap(t) = median{d_i : 科技} − median{d_i : 传统}，d_i = (m_i − cap_i)/cap_i；m 与 cap 均为因果口径。pGap 为扩展窗口秩，只用 <t 的历史，暖机 250 日。",
@@ -27,7 +27,7 @@
   "auc_d_trad": 0.6734,
   "auc_bw_turnover": 0.7344,
   "auc_p_turnover": 0.669,
-  "auc_risk_ref": 0.5649,
+  "auc_risk_ref": 0.5645,
   "corr_gap_H": 0.7035,
   "corr_gap_H_adj": 0.4273,
   "corr_gap_med_d": 0.6945,

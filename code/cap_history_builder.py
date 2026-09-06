@@ -6,7 +6,7 @@ cap_history_builder.py — 研究链路的逐季度 cap（PE + PS，行业 + 子
 
 两个因子的来源刻意不同：
 
-  base   全部来自 base_ref_history.json（逐季度 P50，本次新建）
+  base   全部来自 base_ref_history.json（逐季度 P50）
   R      PE 侧沿用 historical_cap_pe.json 的权威值 —— 它早已逐季度、已验证因果，
          且 T_v5 的判别力实验就是用它做的，换掉会引入与实验不一致的第二个变量。
          PS 侧此前没有任何 R 序列，取 base_builder 新算的 R_PS(sqq_gp_P75)。
@@ -153,7 +153,7 @@ def main():
             "R_ps": f"{BASE_PATH.name} 的 R_PS(sqq_gp_P75)，此前无既有来源",
         },
         "scope": "研究链路（T/MKR/BI/short_tool）唯一 cap 源。"
-                 "生产系统 m_pricing_matrix 的 cap 是人工标定常量表，与本文件无关。",
+                 "连续值，不分档、不设下限、不做人工覆盖。",
         "quarters": quarters,
         "regime_dates": regime,
         "coverage": {q: q_samples(q) for q in quarters},

@@ -5205,5 +5205,5 @@
   "688820": "电子"
  },
  "n_stocks": 5203,
- "frozen_note": "m_pricing_matrix.json 的投影：仅 code → industry。"
+ "frozen_note": "个股 → 行业映射的投影：仅 code → industry。"
 }
