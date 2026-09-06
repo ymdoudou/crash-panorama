@@ -100,6 +100,44 @@ def labels_forecast(dates, episodes, h, tier="SEVERE"):
     return lab, mask
 
 
+def ranks(v):
+    """平均秩（并列取均值）。残差检验用秩而不是原值：streak 是计数、
+    gap 是比值、时间序号是等差，量纲与分布形状都不同，秩变换后正交化
+    才是在比较单调关系，与 AUC 的口径一致。"""
+    o = sorted(range(len(v)), key=lambda i: v[i])
+    r = [0.0] * len(v)
+    i = 0
+    while i < len(o):
+        j = i
+        while j + 1 < len(o) and v[o[j + 1]] == v[o[i]]:
+            j += 1
+        a = (i + j) / 2 + 1
+        for k in range(i, j + 1):
+            r[o[k]] = a
+        i = j + 1
+    return r
+
+
+def resid(y, xs):
+    """把 y 的秩对若干 x 的秩正交化（Gram-Schmidt），返回残差。"""
+    def ctr(v):
+        m = sum(v) / len(v)
+        return [a - m for a in v]
+    basis = []
+    for x in xs:
+        v = ctr(ranks(x))
+        for b in basis:
+            k = sum(a * bb for a, bb in zip(v, b)) / sum(bb * bb for bb in b)
+            v = [a - k * bb for a, bb in zip(v, b)]
+        if sum(a * a for a in v) > 1e-9:
+            basis.append(v)
+    r = ctr(ranks(y))
+    for b in basis:
+        k = sum(a * bb for a, bb in zip(r, b)) / sum(bb * bb for bb in b)
+        r = [a - k * bb for a, bb in zip(r, b)]
+    return r
+
+
 def masked_auc(scores, labels, mask):
     s = [x for x, m in zip(scores, mask) if m]
     l = [x for x, m in zip(labels, mask) if m]
@@ -191,6 +229,64 @@ def main():
     R.cmp("预报阳性日数", ms["eval"]["n_pos"], sum(1 for a, b in zip(lab_f, mask) if a and b),
           tol=0)
     R.show("第五部分：结构撕裂的判别力")
+
+    # ── 2b. 5.5 节：持续性本身是否携带前瞻信息 ──
+    # streak 必须在**全序列**上累计再切窗：从窗口首日重新起算会把
+    # 2024-01-01 之前已经持续的那一段抹掉，窗口开头几十天全部失真。
+    pz = ms.get("persistence")
+    if pz:
+        print("\n═══ 第五部分 5.5：持续性检验 ═══")
+        pos_all, sk_all, run = [], [], 0
+        for r in td_all:
+            v = 1 if (r.get("gap") or 0) > 0 else 0
+            pos_all.append(v)
+            run = run + 1 if v else 0
+            sk_all.append(run)
+        base = {d: i for i, d in enumerate(r["date"] for r in td_all)}
+        sk = [sk_all[base[d]] for d in dates]
+        sh = {N: [sum(pos_all[max(0, base[d] - N + 1): base[d] + 1]) /
+                  len(pos_all[max(0, base[d] - N + 1): base[d] + 1])
+                  for d in dates] for N in (20, 60, 120, 250)}
+        ti = [base[d] for d in dates]
+        R.cmp("streak 前瞻 AUC", pz["auc"]["streak"], masked_auc(sk, lab_f, mask))
+        R.cmp("时间序号 AUC（对照）", pz["auc"]["tidx"], masked_auc(ti, lab_f, mask))
+        for N in (20, 60, 120, 250):
+            R.cmp(f"share{N} 前瞻 AUC", pz["auc"][f"share{N}"],
+                  masked_auc(sh[N], lab_f, mask))
+
+        # 残差只在参与评估的日子上算，与 builder 的 sample 口径一致
+        keep = [i for i, m in enumerate(mask) if m]
+        g_k = [td[i].get("gap") for i in keep]
+        sk_k, ti_k = [sk[i] for i in keep], [ti[i] for i in keep]
+        s6_k = [sh[60][i] for i in keep]
+        lab_k = [lab_f[i] for i in keep]
+        R.cmp("streak 剥离 gap", pz["resid"]["streak_ex_gap"],
+              auc(resid(sk_k, [g_k]), lab_k))
+        R.cmp("streak 剥离时间序号", pz["resid"]["streak_ex_tidx"],
+              auc(resid(sk_k, [ti_k]), lab_k))
+        R.cmp("streak 剥离两者", pz["resid"]["streak_ex_both"],
+              auc(resid(sk_k, [g_k, ti_k]), lab_k))
+        R.cmp("share60 剥离两者", pz["resid"]["share60_ex_both"],
+              auc(resid(s6_k, [g_k, ti_k]), lab_k))
+
+        # 留一事件：极差是判断「AUC 差距是不是噪声」的唯一依据
+        idxd = {d: i for i, d in enumerate(dates)}
+        starts = sorted(idxd[e["start"]] for e in eps
+                        if e["tier"] == "SEVERE" and e["start"] in idxd)
+        eff = sum(1 for j in starts
+                  if any(mask[i] and i < j <= i + h for i in range(len(dates))))
+        R.cmp("有效事件起点数", pz["n_eff_ep"], eff, tol=0)
+        for nm, vals in (("gap", [r.get("gap") for r in td]),
+                         ("streak", sk), ("share60", sh[60])):
+            got = []
+            for j in starts:
+                mk = [m and not (i < j <= i + h) for i, m in enumerate(mask)]
+                if len(set(l for l, m in zip(lab_f, mk) if m)) < 2:
+                    continue
+                got.append(masked_auc(vals, lab_f, mk))
+            R.cmp(f"{nm} 留一极差", pz["loeo"][nm]["range"],
+                  round(max(got) - min(got), 4))
+        R.show("第五部分 5.5：持续性检验")
 
     # ── 3. 三层判定量的检测 vs 预报 ──
     gd = gate["daily"]

@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-05 17:41",
+ "generated_at": "2026-09-07 05:18",
  "tech_sha": "a25c92186226be5b",
  "tech_lock": 1,
  "contract": "gap(t) = median{d_i : 科技} − median{d_i : 传统}，d_i = (m_i − cap_i)/cap_i；m 与 cap 均为因果口径。pGap 为扩展窗口秩，只用 <t 的历史，暖机 250 日。",
@@ -28,6 +28,73 @@
   "auc_bw_turnover": 0.7344,
   "auc_p_turnover": 0.669,
   "auc_risk_ref": 0.5645,
+  "persistence": {
+   "note": "标签、样本与 AUC 口径完全沿用本函数上方的前瞻评估，未另立一套。streak = 截至当日 gap>0 已连续多少个交易日（因果，只用 t 及之前）；share_N = 过去 N 个交易日里 gap>0 的比例。",
+   "n_eff_ep": 5,
+   "ep_pos": [
+    {
+     "start": "2024-01-02",
+     "n_pos": 0
+    },
+    {
+     "start": "2024-12-30",
+     "n_pos": 10
+    },
+    {
+     "start": "2025-03-24",
+     "n_pos": 10
+    },
+    {
+     "start": "2025-09-01",
+     "n_pos": 10
+    },
+    {
+     "start": "2025-10-13",
+     "n_pos": 10
+    },
+    {
+     "start": "2026-05-25",
+     "n_pos": 10
+    }
+   ],
+   "auc": {
+    "gap": 0.7442,
+    "streak": 0.7982,
+    "tidx": 0.6624,
+    "share20": 0.7343,
+    "share60": 0.7759,
+    "share120": 0.7072,
+    "share250": 0.695
+   },
+   "resid": {
+    "streak_ex_gap": 0.6316,
+    "streak_ex_tidx": 0.7889,
+    "streak_ex_both": 0.6491,
+    "share60_ex_both": 0.674
+   },
+   "loeo": {
+    "gap": {
+     "min": 0.6868,
+     "max": 0.7852,
+     "range": 0.0984
+    },
+    "streak": {
+     "min": 0.7478,
+     "max": 0.8771,
+     "range": 0.1293
+    },
+    "share60": {
+     "min": 0.7316,
+     "max": 0.8437,
+     "range": 0.1121
+    }
+   },
+   "corr": {
+    "streak_tidx": 0.5891,
+    "streak_gap": 0.8697,
+    "share60_gap": 0.7342
+   }
+  },
   "corr_gap_H": 0.7035,
   "corr_gap_H_adj": 0.4273,
   "corr_gap_med_d": 0.6945,

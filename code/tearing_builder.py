@@ -134,6 +134,100 @@ def _corr(a, b):
     return None if dx == 0 or dy == 0 else round(num / (dx * dy), 4)
 
 
+def _resid(y, xs):
+    """把 y 的秩对若干 x 的秩正交化，返回残差。
+
+    用秩而不是原值：三个量的量纲与分布形状都不同（streak 是计数、gap 是比值、
+    时间序号是等差），秩变换后正交化才是在比较单调关系，与 AUC 的口径一致。
+    """
+    def c(v):
+        m = statistics.fmean(v)
+        return [a - m for a in v]
+    basis = []
+    for x in xs:
+        v = c(_ranks(x))
+        for b in basis:
+            k = sum(a * bb for a, bb in zip(v, b)) / sum(bb * bb for bb in b)
+            v = [a - k * bb for a, bb in zip(v, b)]
+        if sum(a * a for a in v) > 1e-9:
+            basis.append(v)
+    r = c(_ranks(y))
+    for b in basis:
+        k = sum(a * bb for a, bb in zip(r, b)) / sum(bb * bb for bb in b)
+        r = [a - k * bb for a, bb in zip(r, b)]
+    return r
+
+
+def _persist(rows, sample, lab, starts):
+    """「已经持续了多久」本身是否有前瞻信息 —— 对「持续 → 前瞻」的直接检验。
+
+    正文 5.4 节把「持续」接到「前瞻」上，靠的是度量类型的论证：持续状态只能由
+    水平量刻画，而水平量在图 7.1 上整齐地偏预报。那是一条经验规律，不是把
+    「已经持续了多久」当作预测变量检验过。这里补这一步。
+
+    三个对照缺一不可，少任何一个结论都会被高估：
+
+      时间序号   2025 年的区制转换发生在窗口内部，此后 streak 近乎单调增长，
+                 与「第几天」不易区分。不给出时间序号自身的 AUC，就无法判断
+                 测到的是持续性，还是 SEVERE 事件在窗口后段更密集。
+      剥离 gap   streak 与 gap 水平的秩相关 0.87。不剥离，报出来的多半是水平量
+                 换了个写法，而水平量的判别力 5.3 节已经报过。
+      留一事件   有效阳性窗只有 5 个（见 ep_pos）。事件级离散度是判断
+                 「两个 AUC 的差距是否落在噪声内」的唯一依据。
+
+    streak 无自由参数；share_N 的四个窗口全部报出，因为窗长是事后选的，
+    只报最好的那个就是数据窥探。
+    """
+    SHARES = (20, 60, 120, 250)
+    pos = [1 if (r["gap"] or 0) > 0 else 0 for r in rows]
+    streak, sk = 0, []
+    for v in pos:
+        streak = streak + 1 if v else 0
+        sk.append(streak)
+    sh = {N: [statistics.fmean(pos[max(0, i - N + 1): i + 1])
+              for i in range(len(rows))] for N in SHARES}
+
+    gap = [r["gap"] for _, r in sample]
+    st = [sk[i] for i, _ in sample]
+    ti = [i for i, _ in sample]                       # 时间序号对照
+    shw = {N: [sh[N][i] for i, _ in sample] for N in SHARES}
+
+    ep_pos = [{"start": s, "n_pos": sum(1 for i, _ in sample
+                                        if i < j <= i + EVAL_H)}
+              for s, j in starts]
+
+    def loeo(v):
+        """轮流剔除某个事件的阳性日，看 AUC 在事件之间摆动多大。"""
+        a = []
+        for _, j in starts:
+            keep = [k for k, (i, _) in enumerate(sample)
+                    if not (i < j <= i + EVAL_H)]
+            if len(set(lab[k] for k in keep)) < 2:
+                continue
+            a.append(_auc([v[k] for k in keep], [lab[k] for k in keep]))
+        return {"min": min(a), "max": max(a), "range": round(max(a) - min(a), 4)}
+
+    return {
+        "note": "标签、样本与 AUC 口径完全沿用本函数上方的前瞻评估，未另立一套。"
+                "streak = 截至当日 gap>0 已连续多少个交易日（因果，只用 t 及之前）；"
+                "share_N = 过去 N 个交易日里 gap>0 的比例。",
+        "n_eff_ep": sum(1 for e in ep_pos if e["n_pos"] > 0),
+        "ep_pos": ep_pos,
+        "auc": {"gap": _auc(gap, lab), "streak": _auc(st, lab),
+                "tidx": _auc(ti, lab),
+                **{f"share{N}": _auc(shw[N], lab) for N in SHARES}},
+        "resid": {
+            "streak_ex_gap": _auc(_resid(st, [gap]), lab),
+            "streak_ex_tidx": _auc(_resid(st, [ti]), lab),
+            "streak_ex_both": _auc(_resid(st, [gap, ti]), lab),
+            "share60_ex_both": _auc(_resid(shw[60], [gap, ti]), lab),
+        },
+        "loeo": {"gap": loeo(gap), "streak": loeo(st), "share60": loeo(shw[60])},
+        "corr": {"streak_tidx": _corr(st, ti), "streak_gap": _corr(st, gap),
+                 "share60_gap": _corr(shw[60], gap)},
+    }
+
+
 def measure(rows, tech, trad):
     """前瞻判别力与相关性 —— 每次重算，不留手打常量。
 
@@ -150,7 +244,7 @@ def measure(rows, tech, trad):
     eps = eps["episodes"] if isinstance(eps, dict) else eps
     inside = {r["date"] for r in rows
               for e in eps if e["start"] <= r["date"] <= e["end"]}
-    starts = sorted(idx[e["start"]] for e in eps
+    starts = sorted((e["start"], idx[e["start"]]) for e in eps
                     if e["tier"] == "SEVERE" and e["start"] in idx)
 
     gate = {}
@@ -160,7 +254,7 @@ def measure(rows, tech, trad):
 
     sample = [(i, r) for i, r in enumerate(rows)
               if EVAL_W0 <= r["date"] <= EVAL_W1 and r["date"] not in inside]
-    lab = [any(i < s <= i + EVAL_H for s in starts) for i, _ in sample]
+    lab = [any(i < j <= i + EVAL_H for _, j in starts) for i, _ in sample]
 
     def col(get):
         return [get(r) for _, r in sample]
@@ -183,6 +277,7 @@ def measure(rows, tech, trad):
         "auc_p_turnover": pair(col(lambda r: r["p_turnover_pct"])),
         "auc_risk_ref": pair(col(lambda r: (gate.get(r["date"]) or {}).get("risk"))),
     }
+    out["persistence"] = _persist(rows, sample, lab, starts)
     # 相关性也限定在冻结窗内 —— 全序列会把 2020~2023 的另一个 regime 混进来，
     # 与论文其余数字不同源。实测差别不小：H 全序列 +0.47 / 冻结窗 +0.55。
     win = [r for r in rows if EVAL_W0 <= r["date"] <= EVAL_W1]
