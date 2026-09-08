@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-08 08:56",
+ "generated": "2026-09-08 10:37",
  "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
  "data": [
   {
@@ -132,16 +132,16 @@
    "file": "cap_history_builder.py",
    "src": "stock_cache/cap_history_builder.py",
    "group": "度量构造",
-   "bytes": 9523,
-   "sha256": "cde8ab6ec270d676",
+   "bytes": 9470,
+   "sha256": "2bfcdd8521629292",
    "desc": "逐季 cap 与覆盖率闸门"
   },
   {
    "file": "cap_accessor.py",
    "src": "stock_cache/cap_accessor.py",
    "group": "访问层",
-   "bytes": 11601,
-   "sha256": "56734ee465e7f3ad",
+   "bytes": 11597,
+   "sha256": "2f8345269e145dd8",
    "desc": "cap 的因果访问层"
   },
   {

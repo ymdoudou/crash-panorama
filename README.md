@@ -6,7 +6,7 @@ monitor for the AI-economy sectors of the China A-share market
 **English** | [中文](#中文说明)
 
 Data through **2026-08-26**; frozen window 2024-01-01 to 2026-08-26,
-642 trading days. Snapshot generated 2026-09-08 08:56 (Beijing time).
+642 trading days. Snapshot generated 2026-09-08 10:37 (Beijing time).
 
 ```
 data/   13 datasets   every input behind the paper's results, all taken from the frozen region
@@ -65,6 +65,24 @@ The intent is to **separate parameters from implementation**: you can recompute
 everything exactly as the paper does, or recalibrate on your own data. What you
 get is a method, not a tuned parameter set.
 
+## Names you will meet in the comments
+
+The construction code carries development notes, and a few of them mention parts of
+the research system that are not in this package. They are named rather than hidden
+because the point they make matters: the valuation ceiling used here is **not built
+for this paper**. One `cap` value is computed once and shared by four consumers.
+
+| Name | What it is |
+| --- | --- |
+| `T` | The system-temperature chain. **This is the chain released here.** |
+| `MKR` | A per-stock valuation module that reads the same `cap` |
+| `BI` | A breadth indicator built on the same `d` |
+| `short_tool` | A short-side screen built on the same series |
+
+Only the `T` chain is released, because that is what the paper's results rest on.
+Where a comment says a value is shared with the others, it is stating that the value
+was not tuned for one use.
+
 ## Relation to the production system
 
 This directory is a **one-way snapshot**: the production system copies into it and
@@ -107,7 +125,7 @@ See `LICENSE`. Cite via `CITATION.cff` or the DOI recorded there.
 [English](#valuation-tearing-and-deep-drawdowns) | **中文**
 
 数据截止日 **2026-08-26**；冻结窗口 2024-01-01 ~ 2026-08-26，642 个交易日。
-本快照生成于 2026-09-08 08:56（北京时间）。
+本快照生成于 2026-09-08 10:37（北京时间）。
 
 ```
 data/   13 个数据集     论文全部结论的输入，全部取自冻结区
@@ -154,6 +172,22 @@ python3 reproduce.py --verbose  # 附带 LOEO 逐折明细
 
 用意是**参数与实现分离**：读者可以按论文口径完整重算，也可以在自己的数据上
 重新标定。拿到的是方法，不是一套调好的参数。
+
+## 注释里会遇到的几个名字
+
+构造代码里带着开发注记，其中几条提到本包之外的研究模块。之所以写出名字而不是
+抹掉，是因为那句话本身要紧：这里用的估值天花板**不是为本文特意造的**。
+一份 `cap` 只算一次，由四个使用方共用。
+
+| 名字 | 是什么 |
+| --- | --- |
+| `T` | 系统温度链路。**本包发布的就是这一条。** |
+| `MKR` | 逐股估值模块，读同一份 `cap` |
+| `BI` | 建立在同一份 `d` 上的广度指标 |
+| `short_tool` | 建立在同一批序列上的空头筛选 |
+
+只发布 `T` 这一条，因为论文的结论建立在它之上。注释里说某个值与其余几个共用时，
+说的是这个值没有为某一种用途单独调过。
 
 ## 与生产系统的关系
 
