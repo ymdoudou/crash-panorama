@@ -1,9 +1,113 @@
-# 《估值撕裂与深度下跌》随文数据集与代码
+# Valuation Tearing and Deep Drawdowns
 
-A 股 AI 经济板块的前兆度量与三层监测
+**Data and code accompanying the paper** · A leading measure and a three-layer
+monitor for the AI-economy sectors of the China A-share market
+
+**English** | [中文](#中文说明)
+
+Data through **2026-08-26**; frozen window 2024-01-01 to 2026-08-26,
+642 trading days. Snapshot generated 2026-09-08 08:56 (Beijing time).
+
+```
+data/   13 datasets   every input behind the paper's results, all taken from the frozen region
+code/   12 scripts    how the raw data becomes each indicator
+MANIFEST.json         per-file sha256, byte size and source path
+```
+
+## What level of reproducibility
+
+This repository supports **verification-level** reproduction: every number in
+the paper can be recomputed from `data/`. That is the level review and
+replication actually need. One command checks it:
+
+```bash
+python3 reproduce.py            # prints paper value / recomputed value / difference
+python3 reproduce.py --verbose  # adds the per-fold LOEO detail
+```
+
+Standard library only, no third-party dependencies. Exit code 0 when everything
+agrees; a ✗ means the paper and the data disagree, and the output should be sent
+to the corresponding author.
+
+It does **not** support rebuild-level reproduction, that is, rebuilding every
+intermediate quantity from raw quotes. The reason is size and dependency: the
+per-stock valuation series, pricing matrix and daily temperature files come to
+about 145 MB, the upstream raw quotes are in the gigabytes, and both depend on
+the historical availability of third-party data interfaces. The construction
+code in `code/` is published as a **readable implementation of the method**, not
+as a package that runs end to end.
+
+## Frozen data only, no daily production files
+
+Everything in `data/` comes from the frozen region. The daily production system's
+own files are out of scope: they change every day, so publishing them would mean
+publishing a dataset that no longer matches the paper. Daily data has its own
+public channel (the online dashboard); the two channels stay separate.
+
+Four files are derived by `paper_freeze.py` from daily files clipped to the frozen
+window (marked `derived` in MANIFEST); the rest are original sealed files, held
+read-only by `manifest.contract`.
+
+One item to note: `p_gap` / `p_d_tech` / `p_d_trad` in `tearing_paper.json` are
+expanding-window ranks computed from a 250-day warm-up **before** the frozen
+window, and are fixed per row. Do not try to recompute those three columns from
+the series in this file; you will get different numbers.
+
+## Thresholds are not in the code
+
+Every threshold of the three-layer system is collected in `data/gate_params.json`,
+each with its provenance and calibration method (number of leave-one-episode-out
+folds, dispersion across folds, feasible interval). The code reads them through
+`code/gate_params.py`, which supports both the flat production layout and the
+`data/` + `code/` layout of this package.
+
+The intent is to **separate parameters from implementation**: you can recompute
+everything exactly as the paper does, or recalibrate on your own data. What you
+get is a method, not a tuned parameter set.
+
+## Relation to the production system
+
+This directory is a **one-way snapshot**: the production system copies into it and
+never reads from it. Production keeps evolving; this directory stays at the
+version released with the paper. The paper cites one version of the code and one
+frozen dataset, not "the latest".
+
+## Not included
+
+Daily pipeline orchestration, message push and data collection scripts are out of
+scope: they serve continuous operation and have nothing to do with the
+reproducibility of this paper. The same applies to the scripts that generate the
+paper page itself, which are typesetting rather than method.
+
+## Authors
+
+**Yumei Dou** (corresponding author) · yumei.dou@inaicapital.com
+**Xinrong Li** · xinronglee6@gmail.com
+
+Both authors are with **InAI Capital Advisor LLC**, an investment advisory firm
+whose research program covers quantitative measurement of A-share market
+structure. The three-layer monitor described in the paper runs daily inside the
+firm's research system; this repository publishes the frozen slice behind the
+paper, together with the code that constructs it.
+
+Contribution statement, funding and competing interests are stated in the paper.
+
+## License
+
+See `LICENSE`. Cite via `CITATION.cff` or the DOI recorded there.
+
+---
+
+<a name="中文说明"></a>
+
+# 估值撕裂与深度下跌
+
+**随文数据集与代码** · A 股 AI 经济板块的前兆度量与三层监测
+
+[English](#valuation-tearing-and-deep-drawdowns) | **中文**
 
 数据截止日 **2026-08-26**；冻结窗口 2024-01-01 ~ 2026-08-26，642 个交易日。
-本快照生成于 2026-09-08 07:58（北京时间）。
+本快照生成于 2026-09-08 08:56（北京时间）。
 
 ```
 data/   13 个数据集     论文全部结论的输入，全部取自冻结区
@@ -62,3 +166,18 @@ python3 reproduce.py --verbose  # 附带 LOEO 逐折明细
 日频流水线编排、消息推送、数据采集等运维脚本不在发布范围：
 它们服务于系统的持续运行，与本文的可复现性无关。
 论文页面本身的生成脚本同理，属于排版而非方法。
+
+## 作者
+
+**窦玉梅**（通讯作者）· yumei.dou@inaicapital.com
+**李欣蓉** · xinronglee6@gmail.com
+
+两位作者均供职于 **InAI Capital Advisor LLC**，一家投资顾问机构，
+其研究方向包含 A 股市场结构的量化度量。论文所述的三层监测系统在该机构的
+研究系统中日频运行；本仓库发布的是论文所依据的冻结切片，以及构造它的代码。
+
+作者贡献声明、资助与利益冲突声明见论文正文。
+
+## 许可
+
+见 `LICENSE`。引用方式见 `CITATION.cff`，或使用其中记录的 DOI。

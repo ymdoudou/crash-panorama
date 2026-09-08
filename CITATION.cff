@@ -16,12 +16,15 @@ authors:
   - family-names: Li
     given-names: Xinrong
     affiliation: InAI Capital Advisor LLC
+    email: xinronglee6@gmail.com
 license-url: https://github.com/ymdoudou/crash-panorama/blob/main/LICENSE
 repository-code: https://github.com/ymdoudou/crash-panorama
 keywords:
+  - valuation tearing
   - valuation dispersion
   - value spread
   - early warning system
+  - AI economy
   - market drawdown
   - China A-shares
   - regime shift
