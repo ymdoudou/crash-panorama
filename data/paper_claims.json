@@ -1,0 +1,76 @@
+{
+ "note": "论文正文印出的数字，供 reproduce.py 作为比对基准。由 make_paper_release 从论文页的 DOC_DATA 原样导出，不手打。",
+ "eval": {
+  "h": 10,
+  "window": [
+   "2024-01-02",
+   "2026-08-26"
+  ],
+  "n_days": 642,
+  "n_sev_days": 140,
+  "n_fc_pos": 50,
+  "n_sev_ep_eff": 5
+ },
+ "discrim": {
+  "T": {
+   "detect": 0.6997,
+   "forecast": 0.3176,
+   "role": "Layer1 分量"
+  },
+  "cap_shift": {
+   "detect": 0.615,
+   "forecast": 0.7779,
+   "role": "Layer1 分量"
+  },
+  "pT": {
+   "detect": 0.7123,
+   "forecast": 0.3361,
+   "role": "Layer1 分量"
+  },
+  "pS": {
+   "detect": 0.656,
+   "forecast": 0.7506,
+   "role": "Layer1 与 Layer0 共用"
+  },
+  "risk": {
+   "detect": 0.7459,
+   "forecast": 0.5647,
+   "role": "Layer1 判定量"
+  },
+  "SI": {
+   "detect": 0.7355,
+   "forecast": 0.532,
+   "role": "Layer2 严重度"
+  },
+  "p_price": {
+   "detect": 0.4075,
+   "forecast": 0.7999,
+   "role": "Layer0 分量"
+  },
+  "p_cover": {
+   "detect": 0.7051,
+   "forecast": 0.7748,
+   "role": "Layer0 分量"
+  },
+  "pT_fwd": {
+   "detect": 0.2877,
+   "forecast": 0.6639,
+   "role": "Layer0 分量"
+  },
+  "ew_base": {
+   "detect": 0.4354,
+   "forecast": 0.8726,
+   "role": "Layer0 判定量"
+  },
+  "ew_full": {
+   "detect": 0.5692,
+   "forecast": 0.8749,
+   "role": "Layer0 判定量"
+  },
+  "gap": {
+   "detect": 0.3912,
+   "forecast": 0.744,
+   "role": "独立证据（不入任何层）"
+  }
+ }
+}

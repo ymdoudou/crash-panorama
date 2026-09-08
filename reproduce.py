@@ -244,21 +244,21 @@ def main():
             sk_all.append(run)
         base = {d: i for i, d in enumerate(r["date"] for r in td_all)}
         sk = [sk_all[base[d]] for d in dates]
-        sh = {N: [sum(pos_all[max(0, base[d] - N + 1): base[d] + 1]) /
-                  len(pos_all[max(0, base[d] - N + 1): base[d] + 1])
-                  for d in dates] for N in (20, 60, 120, 250)}
+        occ = {N: [sum(pos_all[max(0, base[d] - N + 1): base[d] + 1]) /
+                   len(pos_all[max(0, base[d] - N + 1): base[d] + 1])
+                   for d in dates] for N in (20, 60, 120, 250)}
         ti = [base[d] for d in dates]
         R.cmp("streak 前瞻 AUC", pz["auc"]["streak"], masked_auc(sk, lab_f, mask))
         R.cmp("时间序号 AUC（对照）", pz["auc"]["tidx"], masked_auc(ti, lab_f, mask))
         for N in (20, 60, 120, 250):
-            R.cmp(f"share{N} 前瞻 AUC", pz["auc"][f"share{N}"],
-                  masked_auc(sh[N], lab_f, mask))
+            R.cmp(f"occ{N} 前瞻 AUC", pz["auc"][f"occ{N}"],
+                  masked_auc(occ[N], lab_f, mask))
 
         # 残差只在参与评估的日子上算，与 builder 的 sample 口径一致
         keep = [i for i, m in enumerate(mask) if m]
         g_k = [td[i].get("gap") for i in keep]
         sk_k, ti_k = [sk[i] for i in keep], [ti[i] for i in keep]
-        s6_k = [sh[60][i] for i in keep]
+        s6_k = [occ[60][i] for i in keep]
         lab_k = [lab_f[i] for i in keep]
         R.cmp("streak 剥离 gap", pz["resid"]["streak_ex_gap"],
               auc(resid(sk_k, [g_k]), lab_k))
@@ -266,7 +266,7 @@ def main():
               auc(resid(sk_k, [ti_k]), lab_k))
         R.cmp("streak 剥离两者", pz["resid"]["streak_ex_both"],
               auc(resid(sk_k, [g_k, ti_k]), lab_k))
-        R.cmp("share60 剥离两者", pz["resid"]["share60_ex_both"],
+        R.cmp("occ60 剥离两者", pz["resid"]["occ60_ex_both"],
               auc(resid(s6_k, [g_k, ti_k]), lab_k))
 
         # 留一事件：极差是判断「AUC 差距是不是噪声」的唯一依据
@@ -277,15 +277,36 @@ def main():
                   if any(mask[i] and i < j <= i + h for i in range(len(dates))))
         R.cmp("有效事件起点数", pz["n_eff_ep"], eff, tol=0)
         for nm, vals in (("gap", [r.get("gap") for r in td]),
-                         ("streak", sk), ("share60", sh[60])):
+                         ("streak", sk), ("occ60", occ[60])):
             got = []
             for j in starts:
                 mk = [m and not (i < j <= i + h) for i, m in enumerate(mask)]
                 if len(set(l for l, m in zip(lab_f, mk) if m)) < 2:
                     continue
                 got.append(masked_auc(vals, lab_f, mk))
+            got = [round(x, 4) for x in got]     # 与 builder 的 _auc 同口径
             R.cmp(f"{nm} 留一极差", pz["loeo"][nm]["range"],
                   round(max(got) - min(got), 4))
+        sev_days = {r["date"] for e in eps if e["tier"] == "SEVERE"
+                    for r in td if e["start"] <= r["date"] <= e["end"]}
+        dl = [r["date"] in sev_days for r in td]
+        R.cmp("检测侧样本数", pz["detect_eval"]["n"], len(dl), tol=0)
+        R.cmp("检测侧阳性日", pz["detect_eval"]["n_pos"], sum(dl), tol=0)
+        R.cmp("gap 检测 AUC", pz["detect_eval"]["auc_gap"],
+              auc([r.get("gap") for r in td], dl))
+        dv = []
+        for e in eps:
+            if e["tier"] != "SEVERE":
+                continue
+            kp = [k for k, r in enumerate(td)
+                  if not (e["start"] <= r["date"] <= e["end"])]
+            L = [dl[k] for k in kp]
+            if len(set(L)) < 2:
+                continue
+            dv.append(auc([td[k].get("gap") for k in kp], L))
+        dv = [round(x, 4) for x in dv]
+        R.cmp("gap 检测侧留一极差", pz["loeo"]["gap_detect"]["range"],
+              round(max(dv) - min(dv), 4))
         R.show("第五部分 5.5：持续性检验")
 
     # ── 3. 三层判定量的检测 vs 预报 ──
@@ -327,8 +348,11 @@ def main():
               f"{'—' if a_f is None else format(a_f, '10.4f')}   {n:4d} 日   "
               f"{'低值危险，已取反' if sgn < 0 else ''}")
     # 摘要与 §7 引的就是这四个数，必须断言，不能只打印
-    for fld, pd_, pf in (("ew_base", 0.4355, 0.8729), ("ew_full", 0.5693, 0.8751),
-                         ("p_price", 0.4075, 0.7999), ("p_cover", 0.7051, 0.7748)):
+    # 论文那一侧的数走 data/paper_claims.json，不写在本脚本里 ——
+    # 手打的基准在论文改数时不会报错，只会静默把「一致」变成「不符」。
+    CL = load("paper_claims.json")["discrim"]
+    for fld in ("ew_base", "ew_full", "p_price", "p_cover"):
+        pd_, pf = CL[fld]["detect"], CL[fld]["forecast"]
         if fld in L0:
             R.cmp(f"{fld} 检测 AUC", pd_, L0[fld][0])
             R.cmp(f"{fld} 预报 AUC", pf, L0[fld][1])

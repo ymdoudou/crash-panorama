@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-04 07:37",
+ "generated": "2026-09-08 07:51",
  "window": [
   "2024-01-01",
   "2026-08-26"
@@ -46,7 +46,7 @@
      "thr": 0.66,
      "train_rec": 5,
      "train_n": 5,
-     "train_rate": 29.9,
+     "train_rate": 29.1,
      "hit": false,
      "lead": null
     },
@@ -102,7 +102,7 @@
   "layer2": {
    "feasible": [
     0.2487,
-    0.4109
+    0.4117
    ],
    "separable": true,
    "stable": true,
@@ -150,12 +150,12 @@
     {
      "id": 9,
      "tier": "SEVERE",
-     "maxSI": 0.4109
+     "maxSI": 0.4117
     },
     {
      "id": 10,
      "tier": "SEVERE",
-     "maxSI": 0.4884
+     "maxSI": 0.4904
     },
     {
      "id": 11,

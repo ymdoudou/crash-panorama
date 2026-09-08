@@ -158,7 +158,7 @@ def _resid(y, xs):
     return r
 
 
-def _persist(rows, sample, lab, starts):
+def _persist(rows, sample, lab, starts, eps):
     """「已经持续了多久」本身是否有前瞻信息 —— 对「持续 → 前瞻」的直接检验。
 
     正文 5.4 节把「持续」接到「前瞻」上，靠的是度量类型的论证：持续状态只能由
@@ -175,26 +175,50 @@ def _persist(rows, sample, lab, starts):
       留一事件   有效阳性窗只有 5 个（见 ep_pos）。事件级离散度是判断
                  「两个 AUC 的差距是否落在噪声内」的唯一依据。
 
-    streak 无自由参数；share_N 的四个窗口全部报出，因为窗长是事后选的，
+    streak 无自由参数；occ_N 的四个窗口全部报出，因为窗长是事后选的，
     只报最好的那个就是数据窥探。
+
+    occ_N 就是 §5.1 那个「科技更贵占比」的滚动版：同一个统计量，
+    一个按自然年切、一个按滚动 N 日窗切。命名沿用「占比」而不是别的词，
+    是为了让读者一眼看出两节算的是同一件事。
     """
-    SHARES = (20, 60, 120, 250)
+    OCC_W = (20, 60, 120, 250)
     pos = [1 if (r["gap"] or 0) > 0 else 0 for r in rows]
     streak, sk = 0, []
     for v in pos:
         streak = streak + 1 if v else 0
         sk.append(streak)
-    sh = {N: [statistics.fmean(pos[max(0, i - N + 1): i + 1])
-              for i in range(len(rows))] for N in SHARES}
+    occ = {N: [statistics.fmean(pos[max(0, i - N + 1): i + 1])
+               for i in range(len(rows))] for N in OCC_W}
 
     gap = [r["gap"] for _, r in sample]
     st = [sk[i] for i, _ in sample]
     ti = [i for i, _ in sample]                       # 时间序号对照
-    shw = {N: [sh[N][i] for i, _ in sample] for N in SHARES}
+    ocw = {N: [occ[N][i] for i, _ in sample] for N in OCC_W}
 
     ep_pos = [{"start": s, "n_pos": sum(1 for i, _ in sample
                                         if i < j <= i + EVAL_H)}
               for s, j in starts]
+
+    # ── 检测侧：样本是窗内全部交易日，标签 = 该日落在 SEVERE 区间内 ──
+    sev_days = {r["date"] for e in eps if e["tier"] == "SEVERE"
+                for r in rows if e["start"] <= r["date"] <= e["end"]}
+    det_rows = [r for r in rows if EVAL_W0 <= r["date"] <= EVAL_W1]
+    det_lab = [r["date"] in sev_days for r in det_rows]
+    gap_all = [r["gap"] for r in det_rows]
+    det_idx = [(e["start"], e["end"]) for e in eps if e["tier"] == "SEVERE"]
+
+    def loeo_detect(v, lab_, spans):
+        """检测侧留一：整段事件从样本里移出（阳性日就是事中日，移标签等于移样本）。"""
+        a = []
+        for a0, b0 in spans:
+            keep = [k for k, r in enumerate(det_rows)
+                    if not (a0 <= r["date"] <= b0)]
+            L = [lab_[k] for k in keep]
+            if len(set(L)) < 2:
+                continue
+            a.append(_auc([v[k] for k in keep], L))
+        return {"min": min(a), "max": max(a), "range": round(max(a) - min(a), 4)}
 
     def loeo(v):
         """轮流剔除某个事件的阳性日，看 AUC 在事件之间摆动多大。"""
@@ -210,21 +234,29 @@ def _persist(rows, sample, lab, starts):
     return {
         "note": "标签、样本与 AUC 口径完全沿用本函数上方的前瞻评估，未另立一套。"
                 "streak = 截至当日 gap>0 已连续多少个交易日（因果，只用 t 及之前）；"
-                "share_N = 过去 N 个交易日里 gap>0 的比例。",
+                "occ_N = 过去 N 个交易日里 gap>0 的占比，"
+                "即 §5.1「科技更贵占比」的滚动版。",
         "n_eff_ep": sum(1 for e in ep_pos if e["n_pos"] > 0),
         "ep_pos": ep_pos,
         "auc": {"gap": _auc(gap, lab), "streak": _auc(st, lab),
                 "tidx": _auc(ti, lab),
-                **{f"share{N}": _auc(shw[N], lab) for N in SHARES}},
+                **{f"occ{N}": _auc(ocw[N], lab) for N in OCC_W}},
         "resid": {
             "streak_ex_gap": _auc(_resid(st, [gap]), lab),
             "streak_ex_tidx": _auc(_resid(st, [ti]), lab),
             "streak_ex_both": _auc(_resid(st, [gap, ti]), lab),
-            "share60_ex_both": _auc(_resid(shw[60], [gap, ti]), lab),
+            "occ60_ex_both": _auc(_resid(ocw[60], [gap, ti]), lab),
         },
-        "loeo": {"gap": loeo(gap), "streak": loeo(st), "share60": loeo(shw[60])},
+        "loeo": {"gap": loeo(gap), "streak": loeo(st), "occ60": loeo(ocw[60]),
+                 # 检测侧的极差：口径与上面三行不同（样本是窗内**全部**交易日，
+                 # 标签是「该日落在 SEVERE 区间内」，不剔除事中日 —— 那正是检测）。
+                 # 补它是为了让「gap 的方向相反」这条结论有自己的稳健性尺子：
+                 # 只用预报侧的极差去衡量一个跨两侧的差值，尺子取小了。
+                 "gap_detect": loeo_detect(gap_all, det_lab, det_idx)},
+        "detect_eval": {"n": len(det_lab), "n_pos": sum(det_lab),
+                        "auc_gap": _auc(gap_all, det_lab)},
         "corr": {"streak_tidx": _corr(st, ti), "streak_gap": _corr(st, gap),
-                 "share60_gap": _corr(shw[60], gap)},
+                 "occ60_gap": _corr(ocw[60], gap)},
     }
 
 
@@ -277,7 +309,7 @@ def measure(rows, tech, trad):
         "auc_p_turnover": pair(col(lambda r: r["p_turnover_pct"])),
         "auc_risk_ref": pair(col(lambda r: (gate.get(r["date"]) or {}).get("risk"))),
     }
-    out["persistence"] = _persist(rows, sample, lab, starts)
+    out["persistence"] = _persist(rows, sample, lab, starts, eps)
     # 相关性也限定在冻结窗内 —— 全序列会把 2020~2023 的另一个 regime 混进来，
     # 与论文其余数字不同源。实测差别不小：H 全序列 +0.47 / 冻结窗 +0.55。
     win = [r for r in rows if EVAL_W0 <= r["date"] <= EVAL_W1]
