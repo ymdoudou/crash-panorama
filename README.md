@@ -6,7 +6,7 @@ monitor for the AI-economy sectors of the China A-share market
 **English** | [中文](#中文说明)
 
 Data through **2026-08-26**; frozen window 2024-01-01 to 2026-08-26,
-642 trading days. Snapshot generated 2026-09-08 10:37 (Beijing time).
+642 trading days. Snapshot generated 2026-09-08 10:49 (Beijing time).
 
 ```
 data/   13 datasets   every input behind the paper's results, all taken from the frozen region
@@ -99,8 +99,8 @@ paper page itself, which are typesetting rather than method.
 
 ## Authors
 
-**Yumei Dou** (corresponding author) · yumei.dou@inaicapital.com
-**Xinrong Li** · xinronglee6@gmail.com
+**Yumei Dou 窦玉梅** (corresponding author) · yumei.dou@inaicapital.com
+**Xinrong Li 李欣嵘** · xinronglee6@gmail.com
 
 Both authors are with **InAI Capital Advisor LLC**, an investment advisory firm
 whose research program covers quantitative measurement of A-share market
@@ -125,7 +125,7 @@ See `LICENSE`. Cite via `CITATION.cff` or the DOI recorded there.
 [English](#valuation-tearing-and-deep-drawdowns) | **中文**
 
 数据截止日 **2026-08-26**；冻结窗口 2024-01-01 ~ 2026-08-26，642 个交易日。
-本快照生成于 2026-09-08 10:37（北京时间）。
+本快照生成于 2026-09-08 10:49（北京时间）。
 
 ```
 data/   13 个数据集     论文全部结论的输入，全部取自冻结区
@@ -203,8 +203,8 @@ python3 reproduce.py --verbose  # 附带 LOEO 逐折明细
 
 ## 作者
 
-**窦玉梅**（通讯作者）· yumei.dou@inaicapital.com
-**李欣蓉** · xinronglee6@gmail.com
+**窦玉梅 Yumei Dou**（通讯作者）· yumei.dou@inaicapital.com
+**李欣嵘 Xinrong Li** · xinronglee6@gmail.com
 
 两位作者均供职于 **InAI Capital Advisor LLC**，一家投资顾问机构，
 其研究方向包含 A 股市场结构的量化度量。论文所述的三层监测系统在该机构的
