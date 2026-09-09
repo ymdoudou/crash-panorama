@@ -8,8 +8,8 @@ abstract: >-
   代码为这些量的构造实现。仓库支持验证级复现：报告中的每一个数字都可由
   reproduce.py 从本仓库数据重算并逐项比对。
 type: dataset
-doi: 10.5281/zenodo.22652442
-version: v1.0
+doi: 10.5281/zenodo.22668713
+version: v1.1
 authors:
   - family-names: Dou
     given-names: Yumei
@@ -23,8 +23,11 @@ license-url: https://github.com/ymdoudou/crash-panorama/blob/main/LICENSE
 repository-code: https://github.com/ymdoudou/crash-panorama
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.22668713
+    description: 本版本（v1.1）的 DOI，论文引用的就是它
+  - type: doi
     value: 10.5281/zenodo.22652442
-    description: 本版本（v1.0）的 DOI，论文引用的就是它
+    description: v1.0 的 DOI。v1.1 只新增派生字段 loeo_pair，v1.0 的既有取值未变
   - type: doi
     value: 10.5281/zenodo.22652441
     description: concept DOI，指向最新版；论文不引它
