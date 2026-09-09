@@ -103,6 +103,79 @@
     "streak_tidx": 0.5616,
     "streak_gap": 0.8698,
     "occ60_gap": 0.7322
+   },
+   "loeo_pair": {
+    "folds": [
+     {
+      "drop": "2024-01-02",
+      "id": 1,
+      "fore_gap": 0.744,
+      "fore_streak": 0.7993,
+      "det_gap": 0.4762,
+      "d_streak_gap": 0.0553,
+      "d_fore_det": 0.2678
+     },
+     {
+      "drop": "2024-12-30",
+      "id": 6,
+      "fore_gap": 0.775,
+      "fore_streak": 0.8161,
+      "det_gap": 0.3875,
+      "d_streak_gap": 0.0411,
+      "d_fore_det": 0.3875
+     },
+     {
+      "drop": "2025-03-24",
+      "id": 8,
+      "fore_gap": 0.6865,
+      "fore_streak": 0.7814,
+      "det_gap": 0.3404,
+      "d_streak_gap": 0.0949,
+      "d_fore_det": 0.3461
+     },
+     {
+      "drop": "2025-09-01",
+      "id": 9,
+      "fore_gap": 0.7074,
+      "fore_streak": 0.7726,
+      "det_gap": 0.4146,
+      "d_streak_gap": 0.0652,
+      "d_fore_det": 0.2928
+     },
+     {
+      "drop": "2025-10-13",
+      "id": 10,
+      "fore_gap": 0.7854,
+      "fore_streak": 0.8771,
+      "det_gap": 0.3971,
+      "d_streak_gap": 0.0917,
+      "d_fore_det": 0.3883
+     },
+     {
+      "drop": "2026-05-25",
+      "id": 12,
+      "fore_gap": 0.7655,
+      "fore_streak": 0.7491,
+      "det_gap": 0.3226,
+      "d_streak_gap": -0.0164,
+      "d_fore_det": 0.4429
+     }
+    ],
+    "streak_gap": {
+     "min": -0.0164,
+     "max": 0.0949,
+     "range": 0.1113,
+     "n_neg": 1,
+     "k": 6
+    },
+    "fore_det": {
+     "min": 0.2678,
+     "max": 0.4429,
+     "range": 0.1751,
+     "n_neg": 0,
+     "k": 6
+    },
+    "note": "同一事件同时从预报侧与检测侧剔除，对**差值**取极差；n_neg = 差值反号的折数。"
    }
   },
   "corr_gap_H": 0.7081,

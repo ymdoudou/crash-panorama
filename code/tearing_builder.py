@@ -158,6 +158,109 @@ def _resid(y, xs):
     return r
 
 
+def eval_inputs(rows, eps):
+    """前瞻评估的样本、标签与事件起点。
+
+    抽成函数是因为**冻结之后还需要用同一套口径重算**：生产数据每天前进
+    （cap 被新财报追溯修正、扩展窗口秩随之变动），线上的 tearing_daily.json
+    与 frozen/tearing_paper.json 的窗内取值已经对不上（实测 auc_gap
+    线上 0.7458 / 冻结 0.7440）。要给冻结文件补一个派生字段，就必须能在
+    **冻结的序列**上跑同一段代码，而不是重跑生产链路 —— 后者会把论文里
+    所有数字悄悄换掉，正是冻结机制要防的事。
+
+    样本 = 冻结窗内、且不落在任何事件区间内的交易日
+           （事件当中的日子度量的是「崩溃时是不是在崩溃」，那是检测不是预报）
+    标签 = 未来 EVAL_H 个交易日内有 SEVERE 事件**开始**
+    """
+    idx = {r["date"]: i for i, r in enumerate(rows)}
+    inside = {r["date"] for r in rows
+              for e in eps if e["start"] <= r["date"] <= e["end"]}
+    starts = sorted((e["start"], idx[e["start"]]) for e in eps
+                    if e["tier"] == "SEVERE" and e["start"] in idx)
+    sample = [(i, r) for i, r in enumerate(rows)
+              if EVAL_W0 <= r["date"] <= EVAL_W1 and r["date"] not in inside]
+    lab = [any(i < j <= i + EVAL_H for _, j in starts) for i, _ in sample]
+    return starts, sample, lab
+
+
+def loeo_paired(rows, eps):
+    """配对留一：同一个事件**同时**从两侧剔除，直接对差值取极差。
+
+    ━━ 为什么不能拿单个端点的极差当分母 ━━
+    要判断的是一个差值 D = A₁ − A₂ 落不落在噪声内，而
+        Var(D) = Var(A₁) + Var(A₂) − 2·Cov(A₁, A₂)
+    用某一个端点的极差，等于把协方差项整个丢掉。这一项的符号在两处相反：
+
+        streak − gap    同一样本、同一折，两个 AUC 同向移动（折间相关 +0.53）
+                        ⇒ 差值比任一端点更稳，端点极差**偏大**，判据过严
+        预报 − 检测     两套样本两套标签，几乎不相关（折间相关 +0.07）
+                        ⇒ 差值比任一端点更抖，端点极差**偏小**，判据过松
+
+    偏差方向恰好各自朝有利于结论的一侧，所以「同一把尺子」这句话在旧口径下
+    并不成立。配对之后分母才真是同一条。
+
+    ━━ 比比值更硬的产出：符号 ━━
+    比值需要先接受「极差是合适的噪声标度」这个约定；**符号是否翻转不需要
+    任何约定**。n_neg > 0 就是「换掉一个事件，结论反号」。
+
+    ━━ 空折 ━━
+    #1 号事件的起点即冻结窗首日，其前 EVAL_H 个交易日落在窗外，一个阳性日
+    也贡献不出来 —— 预报侧剔它等于什么都没剔，那一折的取值就是全样本值。
+    检测侧剔的是整段区间，区间都在窗内，六折全部有效。
+    """
+    starts, sample, lab = eval_inputs(rows, eps)
+    smap = {s: j for s, j in starts}
+
+    pos = [1 if (r["gap"] or 0) > 0 else 0 for r in rows]
+    sk, run = [], 0
+    for v in pos:
+        run = run + 1 if v else 0
+        sk.append(run)
+    gap_f = [r["gap"] for _, r in sample]
+    st_f = [sk[i] for i, _ in sample]
+
+    sev = [e for e in eps if e["tier"] == "SEVERE"]
+    sev_days = {r["date"] for e in sev for r in rows
+                if e["start"] <= r["date"] <= e["end"]}
+    det_rows = [r for r in rows if EVAL_W0 <= r["date"] <= EVAL_W1]
+    det_lab = [r["date"] in sev_days for r in det_rows]
+    gap_d = [r["gap"] for r in det_rows]
+
+    folds = []
+    for e in sev:
+        s0 = e["start"]
+        if s0 not in smap:
+            continue
+        j = smap[s0]
+        kf = [k for k, (i, _) in enumerate(sample) if not (i < j <= i + EVAL_H)]
+        Lf = [lab[k] for k in kf]
+        kd = [k for k, r in enumerate(det_rows)
+              if not (e["start"] <= r["date"] <= e["end"])]
+        Ld = [det_lab[k] for k in kd]
+        if len(set(Lf)) < 2 or len(set(Ld)) < 2:
+            continue
+        af_g = _auc([gap_f[k] for k in kf], Lf)
+        af_s = _auc([st_f[k] for k in kf], Lf)
+        ad_g = _auc([gap_d[k] for k in kd], Ld)
+        folds.append({"drop": s0, "id": e.get("id"),
+                      "fore_gap": round(af_g, 4), "fore_streak": round(af_s, 4),
+                      "det_gap": round(ad_g, 4),
+                      "d_streak_gap": round(af_s - af_g, 4),
+                      "d_fore_det": round(af_g - ad_g, 4)})
+
+    def blk(key):
+        v = [f[key] for f in folds]
+        return {"min": round(min(v), 4), "max": round(max(v), 4),
+                "range": round(max(v) - min(v), 4),
+                "n_neg": sum(1 for x in v if x < 0), "k": len(v)}
+
+    return {"folds": folds,
+            "streak_gap": blk("d_streak_gap"),
+            "fore_det": blk("d_fore_det"),
+            "note": "同一事件同时从预报侧与检测侧剔除，对**差值**取极差；"
+                    "n_neg = 差值反号的折数。"}
+
+
 def _persist(rows, sample, lab, starts, eps):
     """「已经持续了多久」本身是否有前瞻信息 —— 对「持续 → 前瞻」的直接检验。
 
@@ -253,6 +356,10 @@ def _persist(rows, sample, lab, starts, eps):
                  # 补它是为了让「gap 的方向相反」这条结论有自己的稳健性尺子：
                  # 只用预报侧的极差去衡量一个跨两侧的差值，尺子取小了。
                  "gap_detect": loeo_detect(gap_all, det_lab, det_idx)},
+        # 配对留一：分母换成**差值自身**的极差，并报出符号是否翻转。
+        # 上面 loeo/loeo_detect 的单端点极差保留 —— 它们是三张表里
+        # 逐变量那两列的来源，不是同一个用途。
+        "loeo_pair": loeo_paired(rows, eps),
         "detect_eval": {"n": len(det_lab), "n_pos": sum(det_lab),
                         "auc_gap": _auc(gap_all, det_lab)},
         "corr": {"streak_tidx": _corr(st, ti), "streak_gap": _corr(st, gap),
@@ -271,22 +378,14 @@ def measure(rows, tech, trad):
     样本  冻结窗内、且**不在任何事件区间内**的交易日
           —— 事件当中的日子度量的是「崩溃时是不是在崩溃」，那是检测不是预报
     """
-    idx = {r["date"]: i for i, r in enumerate(rows)}
     eps = json.loads(EPS_JSON.read_text())
     eps = eps["episodes"] if isinstance(eps, dict) else eps
-    inside = {r["date"] for r in rows
-              for e in eps if e["start"] <= r["date"] <= e["end"]}
-    starts = sorted((e["start"], idx[e["start"]]) for e in eps
-                    if e["tier"] == "SEVERE" and e["start"] in idx)
+    starts, sample, lab = eval_inputs(rows, eps)
 
     gate = {}
     if GATE_JSON.exists():
         gate = {r["date"]: r for r in json.loads(GATE_JSON.read_text())["daily"]}
     tcz = {r["date"]: r for r in json.loads(T_JSON.read_text())["daily"]}
-
-    sample = [(i, r) for i, r in enumerate(rows)
-              if EVAL_W0 <= r["date"] <= EVAL_W1 and r["date"] not in inside]
-    lab = [any(i < j <= i + EVAL_H for _, j in starts) for i, _ in sample]
 
     def col(get):
         return [get(r) for _, r in sample]

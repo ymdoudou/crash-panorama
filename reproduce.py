@@ -307,6 +307,50 @@ def main():
         dv = [round(x, 4) for x in dv]
         R.cmp("gap 检测侧留一极差", pz["loeo"]["gap_detect"]["range"],
               round(max(dv) - min(dv), 4))
+
+        # ── 配对留一：同一事件同时从两侧剔除，对**差值**取极差 ──
+        # 论文 5.5 的第三张表就是这里逐折算出来的。分母必须是差值自身的极差，
+        # 不能拿某一个端点的：Var(A₁−A₂) 含协方差项，而它的符号在两处相反 ——
+        # 同一样本上两个 AUC 同向移动（折间相关 +0.53，端点极差偏大），
+        # 两套样本上几乎不相关（+0.07，端点极差偏小）。
+        pr = pz.get("loeo_pair")
+        if pr:
+            smap = {e["start"]: idxd[e["start"]] for e in eps
+                    if e["tier"] == "SEVERE" and e["start"] in idxd}
+            got = []
+            for e in eps:
+                if e["tier"] != "SEVERE" or e["start"] not in smap:
+                    continue
+                j = smap[e["start"]]
+                mk = [m and not (i < j <= i + h) for i, m in enumerate(mask)]
+                if len(set(l for l, m in zip(lab_f, mk) if m)) < 2:
+                    continue
+                kp = [k for k, r in enumerate(td)
+                      if not (e["start"] <= r["date"] <= e["end"])]
+                L = [dl[k] for k in kp]
+                if len(set(L)) < 2:
+                    continue
+                fg = round(masked_auc([r.get("gap") for r in td], lab_f, mk), 4)
+                fs = round(masked_auc(sk, lab_f, mk), 4)
+                dg = round(auc([td[k].get("gap") for k in kp], L), 4)
+                got.append({"drop": e["start"], "fore_gap": fg,
+                            "fore_streak": fs, "det_gap": dg,
+                            "d_streak_gap": round(fs - fg, 4),
+                            "d_fore_det": round(fg - dg, 4)})
+            R.cmp("配对留一折数", pr["streak_gap"]["k"], len(got), tol=0)
+            for a, b in zip(pr["folds"], got):
+                R.cmp(f"配对折 {b['drop']} Δ持续", a["d_streak_gap"],
+                      b["d_streak_gap"])
+                R.cmp(f"配对折 {b['drop']} Δ两侧", a["d_fore_det"],
+                      b["d_fore_det"])
+            for key, fld in (("streak_gap", "d_streak_gap"),
+                             ("fore_det", "d_fore_det")):
+                v = [x[fld] for x in got]
+                R.cmp(f"{key} 差值极差", pr[key]["range"],
+                      round(max(v) - min(v), 4))
+                # 符号是否翻转，是这一节比比值更硬的那条证据
+                R.cmp(f"{key} 反号折数", pr[key]["n_neg"],
+                      sum(1 for x in v if x < 0), tol=0)
         R.show("第五部分 5.5：持续性检验")
 
     # ── 3. 三层判定量的检测 vs 预报 ──

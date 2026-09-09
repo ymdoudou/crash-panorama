@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-08 10:50",
+ "generated": "2026-09-09 13:13",
  "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
  "data": [
   {
@@ -33,8 +33,8 @@
   {
    "file": "tearing_paper.json",
    "src": "stock_cache/frozen/tearing_paper.json",
-   "bytes": 394015,
-   "sha256": "5eea648890353d54",
+   "bytes": 395589,
+   "sha256": "9dd14baaaa384394",
    "desc": "gap / d_tech / d_trad 逐日序列与扩展窗口秩，截至冻结窗"
   },
   {
@@ -124,8 +124,8 @@
    "file": "tearing_builder.py",
    "src": "stock_cache/tearing_builder.py",
    "group": "度量构造",
-   "bytes": 19399,
-   "sha256": "719c5ac8fd2e2cef",
+   "bytes": 24302,
+   "sha256": "62b9e6537f816ca2",
    "desc": "gap 的构造与前瞻判别力评估"
   },
   {
