@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gate_params.py — 三层监测系统全部阈值的唯一权威源
+gate_params.py — 三层判定系统全部阈值的唯一权威源
 
 ━━ 为什么要有这个文件 ━━
 阈值原本以字面量写在各 builder 里，同时 recalibrate_frozen 又反过来从
@@ -88,7 +88,7 @@ def meta():
 
 if __name__ == "__main__":
     m = meta()
-    print("═══ 三层监测系统的阈值 ═══")
+    print("═══ 三层判定系统的阈值 ═══")
     if not m:
         print("  gate_params.json 不存在，以下为 DEFAULTS")
         for k, v in DEFAULTS.items():

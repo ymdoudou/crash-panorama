@@ -427,7 +427,7 @@ def build(start, valuation_only=False):
     #
     # 效果：生效日后 60 天的持续偏移从 +0.0266 降到 −0.0035（消失），
     # H_adj 标准差 −20%，日均波动仅 −2%（削掉的是伪波动不是信号）。
-    # 生效日当天仍有一次性跳变 —— 那是估值基准的换季重定价，是事实，不抹平。
+    # 生效日当天仍有一次性跳变 —— 那是估值天花板的换季重定价，是事实，不抹平。
     #
     # 实现：cap 只在季度边界变，故按「适用季度」预算 H 矩阵（约 24 个季度），
     # 而非逐日重算 60 天。
@@ -496,7 +496,7 @@ def build(start, valuation_only=False):
             "S": round(S, 3), "S_base": round(S_base, 3), "S_adj": round(S_adj, 3),
             "above": above, "below": total - above, "total": total,
             "heat": heat, "cool": cool,
-            # 估值基准迁移 —— 与 T 并列的 Layer1 第二维，见 cap_accessor.cap_shift
+            # 估值天花板迁移 —— 与 T 并列的 Layer1 第二维，见 cap_accessor.cap_shift
             "cap_shift": (round(_cs, 5) if (_cs := ca.cap_shift(d)) is not None else None),
             "med_d": round(statistics.median(dv), 4),
             "n_stocks": sum(n for _, n in ind_m[d].values()),

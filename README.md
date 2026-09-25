@@ -6,11 +6,11 @@ monitor for the AI-economy sectors of the China A-share market
 **English** | [中文](#中文说明)
 
 Data through **2026-08-26**; frozen window 2024-01-01 to 2026-08-26,
-642 trading days. Snapshot generated 2026-09-09 13:13 (Beijing time).
+642 trading days. Snapshot generated 2026-09-25 13:11 (Beijing time).
 
 ```
-data/   13 datasets   every input behind the paper's results, all taken from the frozen region
-code/   12 scripts    how the raw data becomes each indicator
+data/   19 datasets   every input behind the paper's results, all taken from the frozen region
+code/   16 scripts    how the raw data becomes each indicator
 MANIFEST.json         per-file sha256, byte size and source path
 ```
 
@@ -104,7 +104,7 @@ paper page itself, which are typesetting rather than method.
 
 Both authors are with **InAI Capital Advisor LLC**, an investment advisory firm
 whose research program covers quantitative measurement of A-share market
-structure. The three-layer monitor described in the paper runs daily inside the
+structure. The three-layer decision system described in the paper runs daily inside the
 firm's research system; this repository publishes the frozen slice behind the
 paper, together with the code that constructs it.
 
@@ -120,16 +120,16 @@ See `LICENSE`. Cite via `CITATION.cff` or the DOI recorded there.
 
 # 估值撕裂与深度下跌
 
-**随文数据集与代码** · A 股 AI 经济板块的前兆度量与三层监测
+**随文数据集与代码** · A 股 AI 经济的前兆度量与三层判定系统
 
 [English](#valuation-tearing-and-deep-drawdowns) | **中文**
 
 数据截止日 **2026-08-26**；冻结窗口 2024-01-01 ~ 2026-08-26，642 个交易日。
-本快照生成于 2026-09-09 13:13（北京时间）。
+本快照生成于 2026-09-25 13:11（北京时间）。
 
 ```
-data/   13 个数据集     论文全部结论的输入，全部取自冻结区
-code/   12 份构造代码   把数据变成指标的方法
+data/   19 个数据集     论文全部结论的输入，全部取自冻结区
+code/   16 份构造代码   把数据变成指标的方法
 MANIFEST.json          逐文件 sha256、字节数与来源路径
 ```
 
@@ -181,7 +181,7 @@ python3 reproduce.py --verbose  # 附带 LOEO 逐折明细
 
 | 名字 | 是什么 |
 | --- | --- |
-| `T` | 系统温度链路。**本包发布的就是这一条。** |
+| `T` | 估值温度链路。**本包发布的就是这一条。** |
 | `MKR` | 逐股估值模块，读同一份 `cap` |
 | `BI` | 建立在同一份 `d` 上的广度指标 |
 | `short_tool` | 建立在同一批序列上的空头筛选 |
@@ -207,7 +207,7 @@ python3 reproduce.py --verbose  # 附带 LOEO 逐折明细
 **李欣嵘 Xinrong Li** · xinronglee6@gmail.com
 
 两位作者均供职于 **InAI Capital Advisor LLC**，一家投资顾问机构，
-其研究方向包含 A 股市场结构的量化度量。论文所述的三层监测系统在该机构的
+其研究方向包含 A 股市场结构的量化度量。论文所述的三层判定系统在该机构的
 研究系统中日频运行；本仓库发布的是论文所依据的冻结切片，以及构造它的代码。
 
 作者贡献声明、资助与利益冲突声明见论文正文。

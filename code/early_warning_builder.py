@@ -167,6 +167,98 @@ def load_cover_surge(p_codes, px_fallback=None):
     return out, (dates[0] if dates else None), (dates[-1] if dates else None), n_med
 
 
+def _episodes():
+    """事件清单。生产走 episodes_causal.json；冻结增补脚本另行传入冻结副本。"""
+    f = SCRIPT_DIR / "episodes_causal.json"
+    if not f.exists():
+        return []
+    d = json.loads(f.read_text())
+    return d["episodes"] if isinstance(d, dict) else d
+
+
+def eval_auc_h10(rows, gate_rows, eps):
+    """前瞻判别力实测值 —— **现算**，不再手打。
+
+    ━━ 为什么改 ━━
+    原先这里是一个字面量字典，注释标注来源为 scratchpad/probe_early*.py。
+    2026-09-18 核查时该脚本已不存在，而 measured_auc_h10 里的 ew_full=0.9029
+    在冻结序列上**穷举 7 种合理样本构造均不能复现**（最接近 0.8834，重算 0.8749）。
+    最可能的解释是探针跑在 2026-08-26 的线上数据上，而冻结数据封存于 09-08 ——
+    两者本就会漂（撕裂侧实测 线上 0.7458 / 冻结 0.7440）。
+
+    ⚠ 范围更正（2026-09-23 核实）：该手打值**没有进论文**。
+      论文页的 ew_full 前瞻判别力由 gen_paper_doc.score() 在日频序列上现算，
+      **不读 measured_auc_h10**，其值 0.8749 与独立重算完全一致。
+      手打值喂的是 crash_panorama 探索页 5.6 节。
+      所以这处硬伤的范围是**探索页而非论文** —— 但它仍然该修：
+      一个读者验不了的数，放在哪里都是负债。
+    撕裂侧已改为从序列重算，本函数把预警侧补齐。
+
+    ━━ 口径 ━━
+    直接复用 tearing_builder.eval_inputs —— 全篇一套评估口径，不另立一套：
+        样本 = 冻结窗内、不落在任何事件区间内、且该指标有值的交易日
+        标签 = 未来 EVAL_H 个交易日内有 SEVERE 事件**开始**
+    每个指标各自剔除自己的缺值日，因而 n 不同；n 与 n_pos 一并写出 ——
+    只给一个 auc 等于把「几个样本、几个阳性」藏起来，而它们恰恰决定这个值值不值得信。
+
+    ━━ 不再给的三个量 ━━
+    short_cover / short_open / long_unwind 是两融分量，既不在 early_warning_daily
+    也不在 crash_gate_daily 里落盘，从发布包无法复算。宁可不给，
+    也不留一个读者验不了的数。
+    """
+    import sys as _sys
+    _sys.path.insert(0, str(SCRIPT_DIR))
+    from tearing_builder import eval_inputs, _auc
+
+    if not eps:
+        return {}
+    _, sample, lab = eval_inputs(rows, eps)
+    if not sample or not any(lab):
+        return {}
+    G = {r["date"]: r for r in gate_rows}
+
+    def auc_of(fn):
+        pair = [(fn(r, G.get(r["date"], {})), l) for (_, r), l in zip(sample, lab)]
+        ok = [(v, l) for v, l in pair if v is not None]
+        if not ok:
+            return None
+        pos = sum(1 for _, l in ok if l)
+        if pos == 0 or pos == len(ok):
+            return None
+        return {"auc": round(_auc([v for v, _ in ok], [l for _, l in ok]), 4),
+                "n": len(ok), "n_pos": pos}
+
+    def noT(r, k):
+        """去掉 pT_fwd 后重算同一条公式 —— 用于量化 T 的实际贡献。"""
+        parts = [r.get("pS"),
+                 None if r.get("p_price") is None else 1 - r["p_price"]]
+        if k == "full":
+            parts.append(r.get("p_cover"))
+        return None if any(x is None for x in parts) else sum(parts) / len(parts)
+
+    out = {}
+    for name, fn in (
+            ("ew_base", lambda r, g: r.get("ew_base")),
+            ("ew_full", lambda r, g: r.get("ew_full")),
+            ("ew_base_noT", lambda r, g: noT(r, "base")),
+            ("ew_full_noT", lambda r, g: noT(r, "full")),
+            ("pT_fwd", lambda r, g: r.get("pT_fwd")),
+            ("pS", lambda r, g: r.get("pS")),
+            ("p_cover", lambda r, g: r.get("p_cover")),
+            ("price_stress_low", lambda r, g: None if r.get("p_price") is None
+             else 1 - r["p_price"]),
+            ("risk_layer1", lambda r, g: g.get("risk")),
+            ("T", lambda r, g: g.get("T")),
+            ("sd_pct", lambda r, g: g.get("sd_pct")),
+            ("margin_stress_low", lambda r, g: None if g.get("margin_stress") is None
+             else -g["margin_stress"]),
+    ):
+        v = auc_of(fn)
+        if v:
+            out[name] = v
+    return out
+
+
 def main():
     print("═══ Layer0 前瞻状态量 ═══")
     if not GATE_JSON.exists():
@@ -255,15 +347,8 @@ def main():
             "note": "ew_full 起点由 margin_cache 起点 − surge 窗 + 暖机决定；"
                     "EP#3(2024-02-02) 结构性落在覆盖外。",
         },
-        # 实测值，来自 2026-08-26 的前瞻判别力实验（探针见 scratchpad/probe_early*.py）
-        "measured_auc_h10": {
-            "ew_base": 0.8087, "ew_full": 0.9029,
-            "ew_base_noT": 0.8012, "ew_full_noT": 0.8965,
-            "risk_layer1": 0.5764, "pT_fwd": 0.6638,
-            "pS": 0.7573, "T": 0.7236, "price_stress_low": 0.8160,
-            "short_cover": 0.7571, "short_open": 0.7391, "long_unwind": 0.6893,
-            "sd_pct": 0.6494, "margin_stress_low": 0.5871,
-        },
+        # 实测值：**现算**，口径见 eval_auc_h10 的 docstring。
+        "measured_auc_h10": eval_auc_h10(rows, gate, _episodes()),
         "daily": rows,
     }
     OUT_PATH.write_text(json.dumps(payload, ensure_ascii=False))

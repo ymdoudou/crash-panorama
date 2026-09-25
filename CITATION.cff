@@ -1,15 +1,16 @@
 cff-version: 1.2.0
 message: 若本仓库对你的研究有帮助，请按下列方式引用。
-title: "估值撕裂与深度下跌：A 股 AI 经济板块的前兆度量与三层监测（数据集与代码）"
+title: "估值撕裂与深度下跌：A 股 AI 经济的前兆度量与三层判定系统（数据集与代码）"
 abstract: >-
   本仓库随同名研究报告发布冻结数据集与构造代码。数据涵盖 2024-01-01 至
-  2026-08-26 共 642 个交易日，含 12 个深度下跌事件的台账、三层监测量的
-  逐日序列、科技与传统行业的估值撕裂序列（gap），以及全部阈值的标定结果。
-  代码为这些量的构造实现。仓库支持验证级复现：报告中的每一个数字都可由
-  reproduce.py 从本仓库数据重算并逐项比对。
+  2026-08-26 共 642 个交易日，含 12 个深度下跌事件的台账、三层判定量的
+  逐日序列、科技与传统行业的估值撕裂序列（gap）、110 个行业级的回撤与收益
+  序列及其前瞻检验结果，以及全部阈值的标定结果。代码为这些量的构造实现。
+  仓库支持验证级复现：报告中的每一个数字都可由 reproduce.py 从本仓库数据
+  重算并逐项比对。
 type: dataset
 doi: 10.5281/zenodo.22668713
-version: v1.1
+version: v1.2
 authors:
   - family-names: Dou
     given-names: Yumei
@@ -24,10 +25,10 @@ repository-code: https://github.com/ymdoudou/crash-panorama
 identifiers:
   - type: doi
     value: 10.5281/zenodo.22668713
-    description: 本版本（v1.1）的 DOI，论文引用的就是它
+    description: v1.1 的 DOI。v1.2 铸版后此处与上方 doi 字段一并回填新值
   - type: doi
     value: 10.5281/zenodo.22652442
-    description: v1.0 的 DOI。v1.1 只新增派生字段 loeo_pair，v1.0 的既有取值未变
+    description: v1.0 的 DOI
   - type: doi
     value: 10.5281/zenodo.22652441
     description: concept DOI，指向最新版；论文不引它

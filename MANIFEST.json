@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-09 13:13",
+ "generated": "2026-09-25 13:11",
  "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
  "data": [
   {
@@ -68,8 +68,8 @@
   {
    "file": "ew_paper.json",
    "src": "stock_cache/frozen/ew_paper.json",
-   "bytes": 348703,
-   "sha256": "8d076f17c3897cea",
+   "bytes": 293210,
+   "sha256": "d8d8cd3d4012440c",
    "desc": "Layer0 前瞻逐日序列与四个分量；§7 的前瞻判别力由它算出"
   },
   {
@@ -85,6 +85,48 @@
    "bytes": 3490,
    "sha256": "7552248bcf1b2b2b",
    "desc": "全部阈值及其出处与标定方式"
+  },
+  {
+   "file": "industry_dd.json",
+   "src": "stock_cache/frozen/industry_dd_paper.json",
+   "bytes": 1339249,
+   "sha256": "c40e18d6ef3dda8a",
+   "desc": "逐行业逐日回撤序列（相对自身 250 日峰值），§5.6 的底座"
+  },
+  {
+   "file": "industry_ret.json",
+   "src": "stock_cache/frozen/industry_ret_paper.json",
+   "bytes": 1431476,
+   "sha256": "948a969edeb040bd",
+   "desc": "逐行业逐日收益序列，§5.6 的事件由它识别"
+  },
+  {
+   "file": "industry_panel.json",
+   "src": "stock_cache/frozen/industry_panel_paper.json",
+   "bytes": 4677,
+   "sha256": "26783de6afcdbd63",
+   "desc": "行业级前瞻检验结果与按回撤水平分层（中性事件口径）"
+  },
+  {
+   "file": "industry_panel_dd.json",
+   "src": "stock_cache/frozen/industry_panel_dd_paper.json",
+   "bytes": 3262,
+   "sha256": "79d478bb18500a8c",
+   "desc": "同上，旧 Δdd 事件口径，供对照"
+  },
+  {
+   "file": "industry_ident.json",
+   "src": "stock_cache/frozen/industry_ident_paper.json",
+   "bytes": 1621,
+   "sha256": "aa15e51e28b8ae81",
+   "desc": "制度边界切样本的识别检验；机制假设的否定结果"
+  },
+  {
+   "file": "industry_econ.json",
+   "src": "stock_cache/frozen/industry_econ_paper.json",
+   "bytes": 9756,
+   "sha256": "63ca83d68208f53a",
+   "desc": "阈值口径的命中/误报/规避与叠加增量检验"
   },
   {
    "file": "paper_claims.json",
@@ -116,16 +158,16 @@
    "file": "t_causal_builder.py",
    "src": "stock_cache/t_causal_builder.py",
    "group": "度量构造",
-   "bytes": 27029,
-   "sha256": "e1ea472466f9a9ae",
-   "desc": "系统温度 T 的因果构造"
+   "bytes": 27035,
+   "sha256": "a6370bf6cdda89e7",
+   "desc": "估值温度 T 的因果构造"
   },
   {
    "file": "tearing_builder.py",
    "src": "stock_cache/tearing_builder.py",
    "group": "度量构造",
-   "bytes": 24302,
-   "sha256": "62b9e6537f816ca2",
+   "bytes": 24766,
+   "sha256": "26be834aa3760bd3",
    "desc": "gap 的构造与前瞻判别力评估"
   },
   {
@@ -140,8 +182,8 @@
    "file": "cap_accessor.py",
    "src": "stock_cache/cap_accessor.py",
    "group": "访问层",
-   "bytes": 11597,
-   "sha256": "2f8345269e145dd8",
+   "bytes": 11606,
+   "sha256": "c7786e72add11d16",
    "desc": "cap 的因果访问层"
   },
   {
@@ -165,7 +207,7 @@
    "src": "stock_cache/gate_params.py",
    "group": "访问层",
    "bytes": 3832,
-   "sha256": "8e615ba9d8f389b1",
+   "sha256": "d0ca4642180d814c",
    "desc": "阈值的唯一权威读取层"
   },
   {
@@ -180,17 +222,49 @@
    "file": "crash_gate_builder.py",
    "src": "stock_cache/crash_gate_builder.py",
    "group": "三层判定量",
-   "bytes": 33662,
-   "sha256": "5b1b716e7035c5eb",
+   "bytes": 33665,
+   "sha256": "598b453b5cc46287",
    "desc": "Layer1 检测 + Layer2 定级"
   },
   {
    "file": "early_warning_builder.py",
    "src": "stock_cache/early_warning_builder.py",
    "group": "三层判定量",
-   "bytes": 14140,
-   "sha256": "dca64279f84c961b",
+   "bytes": 18010,
+   "sha256": "f0d2cb0ff0555328",
    "desc": "Layer0 前瞻"
+  },
+  {
+   "file": "industry_panel_study.py",
+   "src": "stock_cache/industry_panel_study.py",
+   "group": "§5.6 前兆检验",
+   "bytes": 20833,
+   "sha256": "0abe16b8e4c42178",
+   "desc": "行业级前瞻检验与按回撤水平分层；中性事件口径"
+  },
+  {
+   "file": "industry_identification.py",
+   "src": "stock_cache/industry_identification.py",
+   "group": "§5.6 前兆检验",
+   "bytes": 10119,
+   "sha256": "5a9de5fdf87d38c3",
+   "desc": "制度边界切样本的识别检验；机制假设的否定结果"
+  },
+  {
+   "file": "industry_econ_significance.py",
+   "src": "stock_cache/industry_econ_significance.py",
+   "group": "§5.6 前兆检验",
+   "bytes": 13608,
+   "sha256": "34a293d8562501ba",
+   "desc": "阈值口径的命中/误报/规避与叠加增量检验"
+  },
+  {
+   "file": "freeze_industry_panel.py",
+   "src": "stock_cache/freeze_industry_panel.py",
+   "group": "§5.6 前兆检验",
+   "bytes": 4463,
+   "sha256": "4b8bce4091e5619a",
+   "desc": "把上述三者的输入与输出裁到冻结窗并写入 frozen/"
   }
  ],
  "missing": []

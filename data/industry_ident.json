@@ -1,0 +1,98 @@
+{
+ "generated": "2026-09-24 22:09",
+ "window": [
+  "2024-01-01",
+  "2026-08-26"
+ ],
+ "h": 10,
+ "ret_thr": -0.05,
+ "n_tech_sample": 18567,
+ "dims": {
+  "short": {
+   "split": "可融券成分占比",
+   "median": 0.5056,
+   "n_loose": 9830,
+   "n_tight": 8737,
+   "loose": {
+    "tear": {
+     "auc": 0.5521,
+     "p": 0.0077
+    },
+    "dd": {
+     "auc": 0.6053,
+     "p": 0.0077
+    }
+   },
+   "tight": {
+    "tear": {
+     "auc": 0.5266,
+     "p": 0.1769
+    },
+    "dd": {
+     "auc": 0.6081,
+     "p": 0.0077
+    }
+   },
+   "d_tear": -0.0255,
+   "d_dd": 0.0028,
+   "quality": {
+    "loose": {
+     "n_ind": 17,
+     "members": 30.0,
+     "jitter": 0.016,
+     "spread": 1.164
+    },
+    "tight": {
+     "n_ind": 15,
+     "members": 46.0,
+     "jitter": 0.016,
+     "spread": 1.248
+    }
+   }
+  },
+  "wide": {
+   "split": "20% 限幅成分占比",
+   "median": 0.5333,
+   "n_loose": 9288,
+   "n_tight": 9279,
+   "loose": {
+    "tear": {
+     "auc": 0.5481,
+     "p": 0.0543
+    },
+    "dd": {
+     "auc": 0.6056,
+     "p": 0.0233
+    }
+   },
+   "tight": {
+    "tear": {
+     "auc": 0.5347,
+     "p": 0.0846
+    },
+    "dd": {
+     "auc": 0.6056,
+     "p": 0.0077
+    }
+   },
+   "d_tear": -0.0134,
+   "d_dd": 0.0,
+   "quality": {
+    "loose": {
+     "n_ind": 16,
+     "members": 36.5,
+     "jitter": 0.017,
+     "spread": 1.151
+    },
+    "tight": {
+     "n_ind": 16,
+     "members": 22.0,
+     "jitter": 0.0155,
+     "spread": 1.23
+    }
+   }
+  }
+ },
+ "mechanism_rejected": true,
+ "note": "机制假设：套利更受限处撕裂应更强（Δtear > 0）。两个维度均为负即方向一致地否定该假设。"
+}
