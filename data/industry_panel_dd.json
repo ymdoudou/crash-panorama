@@ -1,5 +1,97 @@
 {
- "generated": "2026-09-24 15:30",
+ "strata": [
+  {
+   "decile": 1,
+   "dd_lo": -61.6,
+   "dd_hi": -40.1,
+   "n": 6057,
+   "pos_pct": 3.2,
+   "tear": 0.5107,
+   "dd": 0.5273
+  },
+  {
+   "decile": 2,
+   "dd_lo": -40.1,
+   "dd_hi": -34.9,
+   "n": 6058,
+   "pos_pct": 4.7,
+   "tear": 0.4703,
+   "dd": 0.544
+  },
+  {
+   "decile": 3,
+   "dd_lo": -34.9,
+   "dd_hi": -29.9,
+   "n": 6058,
+   "pos_pct": 7.4,
+   "tear": 0.4814,
+   "dd": 0.5221
+  },
+  {
+   "decile": 4,
+   "dd_lo": -29.9,
+   "dd_hi": -25.4,
+   "n": 6057,
+   "pos_pct": 6.9,
+   "tear": 0.5353,
+   "dd": 0.4624
+  },
+  {
+   "decile": 5,
+   "dd_lo": -25.4,
+   "dd_hi": -22.3,
+   "n": 6058,
+   "pos_pct": 5.0,
+   "tear": 0.5441,
+   "dd": 0.5066
+  },
+  {
+   "decile": 6,
+   "dd_lo": -22.3,
+   "dd_hi": -19.8,
+   "n": 6058,
+   "pos_pct": 5.7,
+   "tear": 0.5119,
+   "dd": 0.5146
+  },
+  {
+   "decile": 7,
+   "dd_lo": -19.8,
+   "dd_hi": -17.6,
+   "n": 6057,
+   "pos_pct": 6.0,
+   "tear": 0.5242,
+   "dd": 0.554
+  },
+  {
+   "decile": 8,
+   "dd_lo": -17.6,
+   "dd_hi": -15.4,
+   "n": 6058,
+   "pos_pct": 8.2,
+   "tear": 0.5286,
+   "dd": 0.5007
+  },
+  {
+   "decile": 9,
+   "dd_lo": -15.4,
+   "dd_hi": -12.7,
+   "n": 6058,
+   "pos_pct": 8.7,
+   "tear": 0.5349,
+   "dd": 0.5041
+  },
+  {
+   "decile": 10,
+   "dd_lo": -12.7,
+   "dd_hi": 0.0,
+   "n": 6058,
+   "pos_pct": 15.8,
+   "tear": 0.5755,
+   "dd": 0.637
+  }
+ ],
+ "generated": "2026-09-25 15:01",
  "design": {
   "unit": "industry×trading-day",
   "window": [
@@ -16,6 +108,12 @@
   "min_members": 8
  },
  "n_industries": 110,
+ "n_industries_used": 100,
+ "n_used": {
+  "全部": 100,
+  "科技": 32,
+  "传统": 68
+ },
  "n_events": 725,
  "n_event_weeks": 69,
  "event_weeks_top": [

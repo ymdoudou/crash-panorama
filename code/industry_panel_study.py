@@ -69,7 +69,13 @@ from price_accessor import PriceAccessor                    # noqa: E402
 from tearing_builder import _auc                            # noqa: E402
 
 FZ = SCRIPT_DIR / "frozen"
-OUT = SCRIPT_DIR / "industry_panel.json"
+# 产出文件名随 --event-mode 变。2026-09-25 事故：OUT 写死成 industry_panel.json，
+# 于是「先跑 return 再跑 dd」时 dd 口径把中性口径的结果整个覆盖，
+# 论文与发布包印出的 725 事件 / tear 0.5530 全是旧 Δdd 口径的数 ——
+# 而 §5.6 整节存在的理由正是消除那个口径的机械偏袒。文件名必须自带口径。
+def out_path(mode):
+    return SCRIPT_DIR / ("industry_panel.json" if mode == "return"
+                         else "industry_panel_dd.json")
 CACHE = SCRIPT_DIR / ".industry_dd_cache.json"
 RET_CACHE = SCRIPT_DIR / ".industry_ret_cache.json"
 
@@ -433,8 +439,9 @@ def main():
         "n_sample": n, "n_pos": npos,
         "result": res,
     }
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=1))
-    print(f"\n  → {OUT.name}")
+    out = out_path(a.event_mode)
+    out.write_text(json.dumps(payload, ensure_ascii=False, indent=1))
+    print(f"\n  → {out.name}")
     return 0
 
 

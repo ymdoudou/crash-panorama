@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-25 13:11",
+ "generated": "2026-09-26 06:04",
  "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
  "data": [
   {
@@ -103,29 +103,29 @@
   {
    "file": "industry_panel.json",
    "src": "stock_cache/frozen/industry_panel_paper.json",
-   "bytes": 4677,
-   "sha256": "26783de6afcdbd63",
+   "bytes": 4691,
+   "sha256": "9927dbafc3549d21",
    "desc": "行业级前瞻检验结果与按回撤水平分层（中性事件口径）"
   },
   {
    "file": "industry_panel_dd.json",
    "src": "stock_cache/frozen/industry_panel_dd_paper.json",
-   "bytes": 3262,
-   "sha256": "79d478bb18500a8c",
+   "bytes": 4677,
+   "sha256": "b3c47cc384910eb8",
    "desc": "同上，旧 Δdd 事件口径，供对照"
   },
   {
    "file": "industry_ident.json",
    "src": "stock_cache/frozen/industry_ident_paper.json",
    "bytes": 1621,
-   "sha256": "aa15e51e28b8ae81",
+   "sha256": "77a8c678ed562892",
    "desc": "制度边界切样本的识别检验；机制假设的否定结果"
   },
   {
    "file": "industry_econ.json",
    "src": "stock_cache/frozen/industry_econ_paper.json",
    "bytes": 9756,
-   "sha256": "63ca83d68208f53a",
+   "sha256": "c369aaed6e196ae1",
    "desc": "阈值口径的命中/误报/规避与叠加增量检验"
   },
   {
@@ -238,8 +238,8 @@
    "file": "industry_panel_study.py",
    "src": "stock_cache/industry_panel_study.py",
    "group": "§5.6 前兆检验",
-   "bytes": 20833,
-   "sha256": "0abe16b8e4c42178",
+   "bytes": 21351,
+   "sha256": "59ed3efd167d37dd",
    "desc": "行业级前瞻检验与按回撤水平分层；中性事件口径"
   },
   {
