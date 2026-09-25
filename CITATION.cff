@@ -9,7 +9,7 @@ abstract: >-
   仓库支持验证级复现：报告中的每一个数字都可由 reproduce.py 从本仓库数据
   重算并逐项比对。
 type: dataset
-doi: 10.5281/zenodo.22668713
+doi: 10.5281/zenodo.22953101
 version: v1.2
 authors:
   - family-names: Dou
@@ -24,8 +24,11 @@ license-url: https://github.com/ymdoudou/crash-panorama/blob/main/LICENSE
 repository-code: https://github.com/ymdoudou/crash-panorama
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.22953101
+    description: 本版本（v1.2）的 DOI，论文引用的就是它
+  - type: doi
     value: 10.5281/zenodo.22668713
-    description: v1.1 的 DOI。v1.2 铸版后此处与上方 doi 字段一并回填新值
+    description: v1.1 的 DOI
   - type: doi
     value: 10.5281/zenodo.22652442
     description: v1.0 的 DOI
