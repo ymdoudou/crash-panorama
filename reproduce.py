@@ -31,6 +31,16 @@ from pathlib import Path
 DATA = Path(__file__).resolve().parent / "data"
 TOL = 1e-4          # 论文里的判别力保留四位小数，容差取到同一量级
 
+# ── 输出语言 ──────────────────────────────────────────────
+# 只切换打印的文字，不改动任何计算。数据里的中文键名不翻译：
+# 它们是冻结文件的一部分，改了就对不上 MANIFEST 的校验和。
+# 键名与行业名的中英对照见仓库根目录的 GLOSSARY.md。
+LANG = "zh"
+
+
+def tr(zh, en):
+    return en if LANG == "en" else zh
+
 
 def load(name):
     return json.loads((DATA / name).read_text())
@@ -167,15 +177,22 @@ class Report:
             fp = f"{p:.4f}" if isinstance(p, float) else str(p)
             fm = f"{m:.4f}" if isinstance(m, float) else str(m)
             fd = f"{d:.2e}" if isinstance(d, float) and d else ("" if ok else "—")
-            print(f"  {'✓' if ok else '✗'} {name:34s} 论文 {fp:>10s}   "
-                  f"重算 {fm:>10s}  {fd:>9s} {note}")
+            print(f"  {'✓' if ok else '✗'} {name:34s} "
+                  f"{tr('论文', 'paper ')} {fp:>10s}   "
+                  f"{tr('重算', 'recomp')} {fm:>10s}  {fd:>9s} {note}")
         self.rows = []
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--verbose", action="store_true")
+    global LANG
+    ap = argparse.ArgumentParser(
+        description="Recompute the paper's numbers from the frozen data in data/")
+    ap.add_argument("--verbose", action="store_true",
+                    help="show per-fold LOEO detail")
+    ap.add_argument("--lang", choices=("zh", "en"), default="zh",
+                    help="language of the printed report (default: zh)")
     args = ap.parse_args()
+    LANG = args.lang
 
     man = load("manifest.json")
     tear = load("tearing_paper.json")
@@ -190,20 +207,30 @@ def main():
     h = P.get("eval_h", 10)
     eps = epi["episodes"]
 
-    print("═══ 论文数字复算 ═══")
-    print(f"  冻结窗口   {w0} ~ {w1}（{man['gate_days']} 个交易日）")
-    print(f"  事件       {epi['n']} 个   " +
+    print(tr("═══ 论文数字复算 ═══",
+            "═══ Recomputation of the paper's numbers ═══"))
+    print(tr(f"  冻结窗口   {w0} ~ {w1}（{man['gate_days']} 个交易日）",
+            f"  Frozen window   {w0} to {w1}  ({man['gate_days']} trading days)"))
+    print(tr(f"  事件       {epi['n']} 个   ",
+            f"  Episodes        {epi['n']}   ") +
           " / ".join(f"{k} {v}" for k, v in epi["tiers"].items()))
-    print(f"  预报视野   h = {h} 个交易日")
-    print(f"  数据来源   data/ 下 {len(man['files'])} 个冻结文件，无外部依赖")
+    print(tr(f"  预报视野   h = {h} 个交易日",
+            f"  Forecast horizon  h = {h} trading days"))
+    print(tr(f"  数据来源   data/ 下 {len(man['files'])} 个冻结文件，无外部依赖",
+            f"  Source          {len(man['files'])} frozen files under data/, "
+            f"no external dependency"))
 
     R = Report()
 
     # ── 1. 撕裂 gap 的逐年统计 ──
     td_all = tear["daily"]
     years = sorted({r["date"][:4] for r in td_all})
-    print(f"\n═══ 逐年 gap（全序列 {len(td_all)} 个交易日，含窗口外的跨区制对照）═══")
-    print(f"  {'年份':6s} {'交易日':>6s} {'gap 中位':>11s} {'科技更贵占比':>12s}")
+    print(tr(f"\n═══ 逐年 gap（全序列 {len(td_all)} 个交易日，"
+            f"含窗口外的跨区制对照）═══",
+            f"\n═══ gap by year (full series, {len(td_all)} trading days; "
+            f"days outside the window serve as a cross-regime control) ═══"))
+    print(tr(f"  {'年份':6s} {'交易日':>6s} {'gap 中位':>11s} {'科技更贵占比':>12s}",
+            f"  {'Year':6s} {'days':>6s} {'median gap':>11s} {'tech dearer':>12s}"))
     for y in years:
         rows = [r for r in td_all if r["date"].startswith(y)]
         g = [r["gap"] for r in rows if r.get("gap") is not None]
@@ -224,18 +251,20 @@ def main():
                      ("auc_bw_turnover", "bw_turnover_pct"),
                      ("auc_p_turnover", "p_turnover_pct")):
         mine = masked_auc([r.get(fld) for r in td], lab_f, mask)
-        R.cmp(f"{fld} 预报 AUC", ms.get(key), mine)
-    R.cmp("预报评估样本数", ms["eval"]["n"], sum(mask), tol=0)
-    R.cmp("预报阳性日数", ms["eval"]["n_pos"], sum(1 for a, b in zip(lab_f, mask) if a and b),
+        R.cmp(tr(f"{fld} 预报 AUC", f"{fld} forecast AUC"), ms.get(key), mine)
+    R.cmp(tr("预报评估样本数", "forecast eval sample n"), ms["eval"]["n"], sum(mask), tol=0)
+    R.cmp(tr("预报阳性日数", "forecast positive days"), ms["eval"]["n_pos"], sum(1 for a, b in zip(lab_f, mask) if a and b),
           tol=0)
-    R.show("第五部分：结构撕裂的判别力")
+    R.show(tr("第五部分：结构撕裂的判别力",
+                 "Section 5: discriminative power of structural tearing"))
 
     # ── 2b. 5.5 节：持续性本身是否携带前瞻信息 ──
     # streak 必须在**全序列**上累计再切窗：从窗口首日重新起算会把
     # 2024-01-01 之前已经持续的那一段抹掉，窗口开头几十天全部失真。
     pz = ms.get("persistence")
     if pz:
-        print("\n═══ 第五部分 5.5：持续性检验 ═══")
+        print(tr("\n═══ 第五部分 5.5：持续性检验 ═══",
+                 "\n═══ Section 5.5: persistence test ═══"))
         pos_all, sk_all, run = [], [], 0
         for r in td_all:
             v = 1 if (r.get("gap") or 0) > 0 else 0
@@ -248,10 +277,10 @@ def main():
                    len(pos_all[max(0, base[d] - N + 1): base[d] + 1])
                    for d in dates] for N in (20, 60, 120, 250)}
         ti = [base[d] for d in dates]
-        R.cmp("streak 前瞻 AUC", pz["auc"]["streak"], masked_auc(sk, lab_f, mask))
-        R.cmp("时间序号 AUC（对照）", pz["auc"]["tidx"], masked_auc(ti, lab_f, mask))
+        R.cmp(tr("streak 前瞻 AUC", "streak forecast AUC"), pz["auc"]["streak"], masked_auc(sk, lab_f, mask))
+        R.cmp(tr("时间序号 AUC（对照）", "time index AUC (control)"), pz["auc"]["tidx"], masked_auc(ti, lab_f, mask))
         for N in (20, 60, 120, 250):
-            R.cmp(f"occ{N} 前瞻 AUC", pz["auc"][f"occ{N}"],
+            R.cmp(tr(f"occ{N} 前瞻 AUC", f"occ{N} forecast AUC"), pz["auc"][f"occ{N}"],
                   masked_auc(occ[N], lab_f, mask))
 
         # 残差只在参与评估的日子上算，与 builder 的 sample 口径一致
@@ -260,13 +289,13 @@ def main():
         sk_k, ti_k = [sk[i] for i in keep], [ti[i] for i in keep]
         s6_k = [occ[60][i] for i in keep]
         lab_k = [lab_f[i] for i in keep]
-        R.cmp("streak 剥离 gap", pz["resid"]["streak_ex_gap"],
+        R.cmp(tr("streak 剥离 gap", "streak net of gap"), pz["resid"]["streak_ex_gap"],
               auc(resid(sk_k, [g_k]), lab_k))
-        R.cmp("streak 剥离时间序号", pz["resid"]["streak_ex_tidx"],
+        R.cmp(tr("streak 剥离时间序号", "streak net of time index"), pz["resid"]["streak_ex_tidx"],
               auc(resid(sk_k, [ti_k]), lab_k))
-        R.cmp("streak 剥离两者", pz["resid"]["streak_ex_both"],
+        R.cmp(tr("streak 剥离两者", "streak net of both"), pz["resid"]["streak_ex_both"],
               auc(resid(sk_k, [g_k, ti_k]), lab_k))
-        R.cmp("occ60 剥离两者", pz["resid"]["occ60_ex_both"],
+        R.cmp(tr("occ60 剥离两者", "occ60 net of both"), pz["resid"]["occ60_ex_both"],
               auc(resid(s6_k, [g_k, ti_k]), lab_k))
 
         # 留一事件：极差是判断「AUC 差距是不是噪声」的唯一依据
@@ -275,7 +304,7 @@ def main():
                         if e["tier"] == "SEVERE" and e["start"] in idxd)
         eff = sum(1 for j in starts
                   if any(mask[i] and i < j <= i + h for i in range(len(dates))))
-        R.cmp("有效事件起点数", pz["n_eff_ep"], eff, tol=0)
+        R.cmp(tr("有效事件起点数", "effective episode starts"), pz["n_eff_ep"], eff, tol=0)
         for nm, vals in (("gap", [r.get("gap") for r in td]),
                          ("streak", sk), ("occ60", occ[60])):
             got = []
@@ -285,14 +314,14 @@ def main():
                     continue
                 got.append(masked_auc(vals, lab_f, mk))
             got = [round(x, 4) for x in got]     # 与 builder 的 _auc 同口径
-            R.cmp(f"{nm} 留一极差", pz["loeo"][nm]["range"],
+            R.cmp(tr(f"{nm} 留一极差", f"{nm} LOEO range"), pz["loeo"][nm]["range"],
                   round(max(got) - min(got), 4))
         sev_days = {r["date"] for e in eps if e["tier"] == "SEVERE"
                     for r in td if e["start"] <= r["date"] <= e["end"]}
         dl = [r["date"] in sev_days for r in td]
-        R.cmp("检测侧样本数", pz["detect_eval"]["n"], len(dl), tol=0)
-        R.cmp("检测侧阳性日", pz["detect_eval"]["n_pos"], sum(dl), tol=0)
-        R.cmp("gap 检测 AUC", pz["detect_eval"]["auc_gap"],
+        R.cmp(tr("检测侧样本数", "detection-side sample n"), pz["detect_eval"]["n"], len(dl), tol=0)
+        R.cmp(tr("检测侧阳性日", "detection-side positive days"), pz["detect_eval"]["n_pos"], sum(dl), tol=0)
+        R.cmp(tr("gap 检测 AUC", "gap detection AUC"), pz["detect_eval"]["auc_gap"],
               auc([r.get("gap") for r in td], dl))
         dv = []
         for e in eps:
@@ -305,7 +334,7 @@ def main():
                 continue
             dv.append(auc([td[k].get("gap") for k in kp], L))
         dv = [round(x, 4) for x in dv]
-        R.cmp("gap 检测侧留一极差", pz["loeo"]["gap_detect"]["range"],
+        R.cmp(tr("gap 检测侧留一极差", "gap detection LOEO range"), pz["loeo"]["gap_detect"]["range"],
               round(max(dv) - min(dv), 4))
 
         # ── 配对留一：同一事件同时从两侧剔除，对**差值**取极差 ──
@@ -337,35 +366,38 @@ def main():
                             "fore_streak": fs, "det_gap": dg,
                             "d_streak_gap": round(fs - fg, 4),
                             "d_fore_det": round(fg - dg, 4)})
-            R.cmp("配对留一折数", pr["streak_gap"]["k"], len(got), tol=0)
+            R.cmp(tr("配对留一折数", "paired LOEO folds"), pr["streak_gap"]["k"], len(got), tol=0)
             for a, b in zip(pr["folds"], got):
-                R.cmp(f"配对折 {b['drop']} Δ持续", a["d_streak_gap"],
+                R.cmp(tr(f"配对折 {b['drop']} Δ持续", f"paired fold {b['drop']} d-persist"), a["d_streak_gap"],
                       b["d_streak_gap"])
-                R.cmp(f"配对折 {b['drop']} Δ两侧", a["d_fore_det"],
+                R.cmp(tr(f"配对折 {b['drop']} Δ两侧", f"paired fold {b['drop']} d-sides"), a["d_fore_det"],
                       b["d_fore_det"])
             for key, fld in (("streak_gap", "d_streak_gap"),
                              ("fore_det", "d_fore_det")):
                 v = [x[fld] for x in got]
-                R.cmp(f"{key} 差值极差", pr[key]["range"],
+                R.cmp(tr(f"{key} 差值极差", f"{key} range of differences"), pr[key]["range"],
                       round(max(v) - min(v), 4))
                 # 符号是否翻转，是这一节比比值更硬的那条证据
-                R.cmp(f"{key} 反号折数", pr[key]["n_neg"],
+                R.cmp(tr(f"{key} 反号折数", f"{key} sign-flip folds"), pr[key]["n_neg"],
                       sum(1 for x in v if x < 0), tol=0)
-        R.show("第五部分 5.5：持续性检验")
+        R.show(tr("第五部分 5.5：持续性检验", "Section 5.5: persistence test"))
 
     # ── 3. 三层判定量的检测 vs 预报 ──
     gd = gate["daily"]
     gdates = [r["date"] for r in gd]
     ld = labels_detect(gdates, eps)
     lf, gmask = labels_forecast(gdates, eps, h)
-    print("\n═══ 第七部分：同一批量，两种标签 ═══")
-    print(f"  {'量':16s} {'检测 AUC':>10s} {'预报 AUC':>10s}   方向")
+    print(tr("\n═══ 第七部分：同一批量，两种标签 ═══",
+             "\n═══ Section 7: one set of quantities, two labellings ═══"))
+    print(tr(f"  {'量':16s} {'检测 AUC':>10s} {'预报 AUC':>10s}   方向",
+             f"  {'quantity':16s} {'detect':>10s} {'forecast':>10s}   stronger"))
     for fld in ("risk", "T", "pT", "pS", "price_stress", "margin_stress", "SI"):
         a_d = auc([r.get(fld) for r in gd], ld)
         a_f = masked_auc([r.get(fld) for r in gd], lf, gmask)
         if a_d is None or a_f is None:
             continue
-        arrow = "检测强" if a_d > a_f else ("预报强" if a_f > a_d else "持平")
+        arrow = (tr("检测强", "detection") if a_d > a_f else
+                 tr("预报强", "forecast") if a_f > a_d else tr("持平", "tied"))
         print(f"  {fld:16s} {a_d:10.4f} {a_f:10.4f}   {arrow}")
 
     # ── 3b. Layer0 前瞻层 ──
@@ -377,8 +409,10 @@ def main():
     # 「低值代表危险」的量要取反，否则 AUC 会落在 0.5 以下、读起来像反向指标。
     # 论文的 §7 判别力表用同一约定；两处不一致就没法逐项比对。
     INVERT = {"p_price"}          # T 也属此类，但它在 gate_paper 那一节
-    print("\n═══ 第七部分：Layer0 前瞻层 ═══")
-    print(f"  {'量':16s} {'检测 AUC':>10s} {'预报 AUC':>10s}   覆盖   取向")
+    print(tr("\n═══ 第七部分：Layer0 前瞻层 ═══",
+             "\n═══ Section 7: the Layer0 forward layer ═══"))
+    print(tr(f"  {'量':16s} {'检测 AUC':>10s} {'预报 AUC':>10s}   覆盖   取向",
+             f"  {'quantity':16s} {'detect':>10s} {'forecast':>10s}   cover  sign"))
     L0 = {}
     for fld in ("ew_base", "ew_full", "p_price", "p_cover", "pT_fwd", "pS"):
         n = sum(1 for r in ew if r.get(fld) is not None)
@@ -389,8 +423,9 @@ def main():
         a_d, a_f = auc(vals, eld), masked_auc(vals, elf, emask)
         L0[fld] = (a_d, a_f)
         print(f"  {fld:16s} {'—' if a_d is None else format(a_d, '10.4f')} "
-              f"{'—' if a_f is None else format(a_f, '10.4f')}   {n:4d} 日   "
-              f"{'低值危险，已取反' if sgn < 0 else ''}")
+              f"{'—' if a_f is None else format(a_f, '10.4f')}   {n:4d} "
+              f"{tr('日', 'd'):3s} "
+              f"{tr('低值危险，已取反', 'low = risky, sign flipped') if sgn < 0 else ''}")
     # 摘要与 §7 引的就是这四个数，必须断言，不能只打印
     # 论文那一侧的数走 data/paper_claims.json，不写在本脚本里 ——
     # 手打的基准在论文改数时不会报错，只会静默把「一致」变成「不符」。
@@ -398,9 +433,9 @@ def main():
     for fld in ("ew_base", "ew_full", "p_price", "p_cover"):
         pd_, pf = CL[fld]["detect"], CL[fld]["forecast"]
         if fld in L0:
-            R.cmp(f"{fld} 检测 AUC", pd_, L0[fld][0])
-            R.cmp(f"{fld} 预报 AUC", pf, L0[fld][1])
-    R.show("第七部分：Layer0 前瞻层")
+            R.cmp(tr(f"{fld} 检测 AUC", f"{fld} detection AUC"), pd_, L0[fld][0])
+            R.cmp(tr(f"{fld} 预报 AUC", f"{fld} forecast AUC"), pf, L0[fld][1])
+    R.show(tr("第七部分：Layer0 前瞻层", "Section 7: Layer0 forward layer"))
 
     # ── 4. Layer1 阈值的留一事件交叉验证 ──
     # 三处细节必须与论文的标定脚本一致，任何一处不同都会得到别的阈值：
@@ -450,30 +485,37 @@ def main():
     sigma = (sum((x - mean) ** 2 for x in picks) / len(picks)) ** 0.5
 
     if args.verbose:
-        print("\n  逐折明细（留出事件 / 训练集选出的阈值 / 训练召回 / 训练报警率）")
+        print(tr("\n  逐折明细（留出事件 / 训练集选出的阈值 / 训练召回 / 训练报警率）",
+                 "\n  per-fold detail (held-out episode / threshold chosen on the "
+                 "training folds / training recall / training alarm rate)"))
         for f in folds:
             print(f"    #{f['ep']:<3d} thr={f['thr']:.2f}  "
-                  f"召回 {f['train_rec']}/{f['train_n']}  "
-                  f"报警率 {f['train_rate']:.1f}%")
+                  f"{tr('召回', 'recall')} {f['train_rec']}/{f['train_n']}  "
+                  f"{tr('报警率', 'alarm rate')} {f['train_rate']:.1f}%")
 
     c1 = cal["calib"]["layer1"]
-    R.cmp("Layer1 LOEO 阈值中位", c1["loeo_med"], med, tol=1e-9)
-    R.cmp("Layer1 折间离散度", c1["sigma"], sigma, tol=1e-4,
-          note="σ<0.05 判为「由数据决定」")
-    R.cmp("Layer1 阈值下沿", c1["loeo_range"][0], min(picks), tol=1e-9)
-    R.cmp("Layer1 阈值上沿", c1["loeo_range"][1], max(picks), tol=1e-9)
-    R.cmp("逐折阈值序列", str([f["thr"] for f in c1["folds"]]),
+    R.cmp(tr("Layer1 LOEO 阈值中位", "Layer1 LOEO median threshold"), c1["loeo_med"], med, tol=1e-9)
+    R.cmp(tr("Layer1 折间离散度", "Layer1 across-fold dispersion"), c1["sigma"], sigma, tol=1e-4,
+          note=tr("σ<0.05 判为「由数据决定」", "sigma<0.05 counts as data-determined"))
+    R.cmp(tr("Layer1 阈值下沿", "Layer1 threshold lower edge"), c1["loeo_range"][0], min(picks), tol=1e-9)
+    R.cmp(tr("Layer1 阈值上沿", "Layer1 threshold upper edge"), c1["loeo_range"][1], max(picks), tol=1e-9)
+    R.cmp(tr("逐折阈值序列", "per-fold threshold sequence"), str([f["thr"] for f in c1["folds"]]),
           str(picks), tol=0)
-    R.cmp("Layer1 生产常数", cal["production_constants"]["layer1"],
-          P.get("risk_alarm"), tol=0, note="gate_params.json 与标定结果对账")
-    R.show("第八部分：阈值标定")
+    R.cmp(tr("Layer1 生产常数", "Layer1 production constant"), cal["production_constants"]["layer1"],
+          P.get("risk_alarm"), tol=0, note=tr("gate_params.json 与标定结果对账",
+                   "gate_params.json reconciled with calibration"))
+    R.show(tr("第八部分：阈值标定", "Section 8: threshold calibration"))
 
     # ── 5. 逐事件检出与定级 ──
-    print("\n═══ 逐事件：Layer1 检出与 Layer2 定级 ═══")
+    print(tr("\n═══ 逐事件：Layer1 检出与 Layer2 定级 ═══",
+             "\n═══ Per episode: Layer1 detection and Layer2 grading ═══"))
     thr1, thr2 = P.get("risk_alarm", 0.65), cal["production_constants"]["layer2"]
-    print(f"  阈值 risk ≥ {thr1}（检出）  SI ≥ {thr2}（critical）")
-    print(f"  {'#':>3s} {'分级':9s} {'区间':24s} {'maxRisk':>8s} {'maxSI':>7s} "
-          f"{'检出':>5s} {'定级':>5s}")
+    print(tr(f"  阈值 risk ≥ {thr1}（检出）  SI ≥ {thr2}（critical）",
+             f"  thresholds: risk >= {thr1} (detect)   SI >= {thr2} (critical)"))
+    print(tr(f"  {'#':>3s} {'分级':9s} {'区间':24s} {'maxRisk':>8s} {'maxSI':>7s} "
+             f"{'检出':>5s} {'定级':>5s}",
+             f"  {'#':>3s} {'tier':9s} {'span':24s} {'maxRisk':>8s} {'maxSI':>7s} "
+             f"{'det':>5s} {'crit':>5s}"))
     n_hit = n_crit = n_false = 0
     for e in eps:
         rows = [r for r in gd if e["start"] <= r["date"] <= e["end"]]
@@ -487,16 +529,20 @@ def main():
         print(f"  {e['id']:3d} {e['tier']:9s} {e['start']}~{e['end']}  "
               f"{mr:8.4f} {msi:7.4f} {'✓' if hit else '·':>5s} "
               f"{'critical' if crit else '·':>5s}")
-    R.cmp("SEVERE 检出数", len(sev), n_hit, tol=0)
-    R.cmp("SEVERE 判 critical", len(sev), n_crit, tol=0)
-    R.cmp("非 SEVERE 误判 critical", 0, n_false, tol=0)
-    R.show("第八部分：逐事件表现")
+    R.cmp(tr("SEVERE 检出数", "SEVERE detected"), len(sev), n_hit, tol=0)
+    R.cmp(tr("SEVERE 判 critical", "SEVERE graded critical"), len(sev), n_crit, tol=0)
+    R.cmp(tr("非 SEVERE 误判 critical", "non-SEVERE false critical"), 0, n_false, tol=0)
+    R.show(tr("第八部分：逐事件表现", "Section 8: per-episode performance"))
 
     print()
     if R.bad:
-        print(f"✗ {R.bad} 项与论文不符 —— 请把本输出发给通讯作者")
+        print(tr(f"✗ {R.bad} 项与论文不符 —— 请把本输出发给通讯作者",
+                 f"✗ {R.bad} item(s) disagree with the paper — please send this "
+                 f"output to the corresponding author"))
         return 1
-    print("✓ 全部一致：论文中的数字可由本仓库的冻结数据重算得到")
+    print(tr("✓ 全部一致：论文中的数字可由本仓库的冻结数据重算得到",
+             "✓ All agree: the paper's numbers are reproducible from the frozen "
+             "data in this repository"))
     return 0
 
 
