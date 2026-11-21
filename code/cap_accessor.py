@@ -81,10 +81,18 @@ class CapAccessor:
         raw = json.loads(self.path.read_text())
         self.generated_at = raw.get("generated_at")
 
-        # regime: [(生效日, 季度)]，按生效日升序
+        # regime: [(生效日, 季度)]，按 (生效日, 季度标签) 升序。
+        # **第二个键不可省。** 年报与一季报的生效日相同（均为次年 05-01，
+        # 全历史 8 处），只按生效日排序时 sorted 是稳定排序，于是
+        # applicable_quarter 取到哪一个**取决于 JSON 里键的书写顺序** ——
+        # 2026-05-01 当前得到 2026Q1（正确），仅因文件恰好把 2025Q4 写在前面；
+        # 键序一反就变成 2025Q4，该日之后所有行业的 cap 全部改变
+        # （实测专用设备 78.02 → 75.344）。
+        # 2026-11-20 审计发现。加上季度标签即确定性取较晚的那个季度，
+        # 与下游 _lookup 的 max(avail) 同向，当前取值不变。
         self._regime = sorted(
             ((eff, q) for q, eff in raw.get("regime_dates", {}).items()),
-            key=lambda x: x[0],
+            key=lambda x: (x[0], x[1]),
         )
 
         # (kind, sub) -> {name: {quarter: cap}}

@@ -91,7 +91,7 @@
    "dd": 0.5852
   }
  ],
- "generated": "2026-09-25 15:02",
+ "generated": "2026-11-19 01:16",
  "design": {
   "unit": "industry×trading-day",
   "window": [
@@ -145,6 +145,9 @@
    "n": 59067,
    "n_pos": 6126,
    "n_days": 642,
+   "n_perm": 161,
+   "perm_step": 4,
+   "perm_kind": "structure-preserving circular shift over the date axis",
    "metrics": {
     "tear": {
      "auc": 0.5196,
@@ -214,6 +217,9 @@
    "n": 18579,
    "n_pos": 2334,
    "n_days": 642,
+   "n_perm": 161,
+   "perm_step": 4,
+   "perm_kind": "structure-preserving circular shift over the date axis",
    "metrics": {
     "tear": {
      "auc": 0.5412,
@@ -261,6 +267,9 @@
    "n": 40488,
    "n_pos": 3792,
    "n_days": 642,
+   "n_perm": 161,
+   "perm_step": 4,
+   "perm_kind": "structure-preserving circular shift over the date axis",
    "metrics": {
     "tear": {
      "auc": 0.5024,

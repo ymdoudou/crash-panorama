@@ -1,4 +1,4 @@
-# Valuation Tearing and Deep Drawdowns
+# A Coupling Diagnostic for Event-Based Forecast Evaluation
 
 **Data and code accompanying the paper** · A leading measure and a three-layer
 monitor for the AI-economy sectors of the China A-share market
@@ -6,12 +6,13 @@ monitor for the AI-economy sectors of the China A-share market
 **English** | [中文](#中文说明)
 
 Data through **2026-08-26**; frozen window 2024-01-01 to 2026-08-26,
-642 trading days. Snapshot generated 2026-09-26 06:56 (Beijing time).
+642 trading days. Snapshot generated 2026-11-21 15:07 (Beijing time).
 
 ```
-data/   19 datasets   every input behind the paper's results, all taken from the frozen region
-code/   16 scripts    how the raw data becomes each indicator
+data/   24 datasets   every input behind the paper's results, all taken from the frozen region
+code/   18 scripts    how the raw data becomes each indicator
 MANIFEST.json         per-file sha256, byte size and source path
+GLOSSARY.md           every Chinese key, industry and sector name, mapped to English
 ```
 
 ## What level of reproducibility
@@ -23,6 +24,7 @@ replication actually need. One command checks it:
 ```bash
 python3 reproduce.py            # prints paper value / recomputed value / difference
 python3 reproduce.py --verbose  # adds the per-fold LOEO detail
+python3 reproduce.py --lang en  # same report, in English
 ```
 
 Standard library only, no third-party dependencies. Exit code 0 when everything
@@ -121,19 +123,20 @@ See `LICENSE`. Cite via `CITATION.cff` or the DOI recorded there.
 
 <a name="中文说明"></a>
 
-# 估值撕裂与深度下跌
+# 事件型预测评估中的耦合诊断
 
 **随文数据集与代码** · A 股 AI 经济的前兆度量与三层判定系统
 
 [English](#valuation-tearing-and-deep-drawdowns) | **中文**
 
 数据截止日 **2026-08-26**；冻结窗口 2024-01-01 ~ 2026-08-26，642 个交易日。
-本快照生成于 2026-09-26 06:56（北京时间）。
+本快照生成于 2026-11-21 15:07（北京时间）。
 
 ```
-data/   19 个数据集     论文全部结论的输入，全部取自冻结区
-code/   16 份构造代码   把数据变成指标的方法
+data/   24 个数据集     论文全部结论的输入，全部取自冻结区
+code/   18 份构造代码   把数据变成指标的方法
 MANIFEST.json          逐文件 sha256、字节数与来源路径
+GLOSSARY.md            数据里全部中文键名、行业名、板块名的中英对照
 ```
 
 ## 可复现到哪一级
@@ -144,6 +147,7 @@ MANIFEST.json          逐文件 sha256、字节数与来源路径
 ```bash
 python3 reproduce.py            # 逐项打印「论文值 / 重算值 / 差」
 python3 reproduce.py --verbose  # 附带 LOEO 逐折明细
+python3 reproduce.py --lang en  # 同一份报告，英文输出
 ```
 
 只用 Python 标准库，无第三方依赖。全部一致时退出码 0；

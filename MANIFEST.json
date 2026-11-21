@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-26 06:56",
+ "generated": "2026-11-21 15:07",
  "note": "本目录是发布快照，生产系统绝不读取它；生产改动后需重跑 make_paper_release.py 才会同步。",
  "data": [
   {
@@ -87,32 +87,67 @@
    "desc": "全部阈值及其出处与标定方式"
   },
   {
+   "file": "industry_nonparam.json",
+   "src": "stock_cache/frozen/industry_nonparam_paper.json",
+   "bytes": 19112,
+   "sha256": "21c25a845af51a0d",
+   "desc": "§6.8 的非参数多重比较：100 个行业分块的组内 AUC、Friedman 与 Wilcoxon/Holm 全部统计量"
+  },
+  {
+   "file": "cap_scan_ratios.json",
+   "src": "stock_cache/frozen/cap_scan_ratios_paper.json",
+   "bytes": 649634,
+   "sha256": "67dcf568afd376e9",
+   "desc": "§6.8 扫描的扰动比值（逐行业逐季度）。它与 industry_d.json 的 r 合起来即可复算全部格点，不必依赖日更的 base_ref_history —— 后者封存 82 天后已把 6 个季度、16 个行业的 cap 追溯改写，中位 2.54%"
+  },
+  {
+   "file": "cap_sensitivity.json",
+   "src": "stock_cache/frozen/cap_sensitivity_paper.json",
+   "bytes": 12754,
+   "sha256": "9f195dc9f5214bb7",
+   "desc": "§6.8 的 cap 分位敏感性扫描：广度 42 格点与面板 12 格点"
+  },
+  {
+   "file": "industry_d.json",
+   "src": "stock_cache/frozen/industry_d_paper.json",
+   "bytes": 1302884,
+   "sha256": "59bf8bd230e0abe2",
+   "desc": "逐行业逐日估值偏离的来源 r（d = r − 1），§5.6 的预测量；由 t_causal_paper 裁窗派生，23 MB → 1.3 MB"
+  },
+  {
    "file": "industry_dd.json",
    "src": "stock_cache/frozen/industry_dd_paper.json",
    "bytes": 1339249,
-   "sha256": "c40e18d6ef3dda8a",
+   "sha256": "cb4bd43fa61224cb",
    "desc": "逐行业逐日回撤序列（相对自身 250 日峰值），§5.6 的底座"
   },
   {
    "file": "industry_ret.json",
    "src": "stock_cache/frozen/industry_ret_paper.json",
-   "bytes": 1431476,
-   "sha256": "948a969edeb040bd",
+   "bytes": 1537953,
+   "sha256": "092106944e6634ce",
    "desc": "逐行业逐日收益序列，§5.6 的事件由它识别"
   },
   {
    "file": "industry_panel.json",
    "src": "stock_cache/frozen/industry_panel_paper.json",
-   "bytes": 4691,
-   "sha256": "9927dbafc3549d21",
+   "bytes": 5024,
+   "sha256": "8155f3cfe79c1edf",
    "desc": "行业级前瞻检验结果与按回撤水平分层（中性事件口径）"
   },
   {
    "file": "industry_panel_dd.json",
    "src": "stock_cache/frozen/industry_panel_dd_paper.json",
    "bytes": 4677,
-   "sha256": "b3c47cc384910eb8",
+   "sha256": "d3479f9e824c9bda",
    "desc": "同上，旧 Δdd 事件口径，供对照"
+  },
+  {
+   "file": "industry_panel_jump.json",
+   "src": "stock_cache/frozen/industry_panel_jump_paper.json",
+   "bytes": 5121,
+   "sha256": "e82aed109bdb4306",
+   "desc": "同上，Yeganeh et al. (2026) 的向下跳跃口径，§5.6 的第三个事件定义"
   },
   {
    "file": "industry_ident.json",
@@ -150,8 +185,8 @@
    "file": "episode_ledger.py",
    "src": "stock_cache/episode_ledger.py",
    "group": "事件识别",
-   "bytes": 7371,
-   "sha256": "14944d1f43f83bef",
+   "bytes": 12733,
+   "sha256": "ebd8f7063b3e9edc",
    "desc": "只追加的事件台账"
   },
   {
@@ -182,8 +217,8 @@
    "file": "cap_accessor.py",
    "src": "stock_cache/cap_accessor.py",
    "group": "访问层",
-   "bytes": 11606,
-   "sha256": "c7786e72add11d16",
+   "bytes": 12324,
+   "sha256": "e5a4b85c9491b151",
    "desc": "cap 的因果访问层"
   },
   {
@@ -238,9 +273,25 @@
    "file": "industry_panel_study.py",
    "src": "stock_cache/industry_panel_study.py",
    "group": "§5.6 前兆检验",
-   "bytes": 21351,
-   "sha256": "59ed3efd167d37dd",
+   "bytes": 30785,
+   "sha256": "e12b6238c549ad28",
    "desc": "行业级前瞻检验与按回撤水平分层；中性事件口径"
+  },
+  {
+   "file": "industry_panel_nonparam.py",
+   "src": "stock_cache/industry_panel_nonparam.py",
+   "group": "§6.8 统计方法",
+   "bytes": 10697,
+   "sha256": "f9a492f6aca9860e",
+   "desc": "Friedman + Wilcoxon/Holm；样本读 industry_panel_study --dump-rows 的产物"
+  },
+  {
+   "file": "cap_sensitivity_scan.py",
+   "src": "stock_cache/cap_sensitivity_scan.py",
+   "group": "§6.8 统计方法",
+   "bytes": 11553,
+   "sha256": "e08f5acf978d1b94",
+   "desc": "cap 两个分位的敏感性扫描；按比值扰动，生产格点自证"
   },
   {
    "file": "industry_identification.py",
@@ -262,8 +313,8 @@
    "file": "freeze_industry_panel.py",
    "src": "stock_cache/freeze_industry_panel.py",
    "group": "§5.6 前兆检验",
-   "bytes": 4463,
-   "sha256": "4b8bce4091e5619a",
+   "bytes": 8841,
+   "sha256": "e9cc0b6ba9b5a072",
    "desc": "把上述三者的输入与输出裁到冻结窗并写入 frozen/"
   }
  ],

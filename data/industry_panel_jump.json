@@ -1,0 +1,320 @@
+{
+ "strata": [
+  {
+   "decile": 1,
+   "dd_lo": -61.6,
+   "dd_hi": -40.1,
+   "n": 5879,
+   "pos_pct": 6.4,
+   "tear": 0.4849,
+   "dd": 0.5623
+  },
+  {
+   "decile": 2,
+   "dd_lo": -40.1,
+   "dd_hi": -35.0,
+   "n": 5880,
+   "pos_pct": 6.9,
+   "tear": 0.49,
+   "dd": 0.5201
+  },
+  {
+   "decile": 3,
+   "dd_lo": -35.0,
+   "dd_hi": -30.1,
+   "n": 5879,
+   "pos_pct": 8.2,
+   "tear": 0.4933,
+   "dd": 0.5186
+  },
+  {
+   "decile": 4,
+   "dd_lo": -30.1,
+   "dd_hi": -25.7,
+   "n": 5880,
+   "pos_pct": 8.7,
+   "tear": 0.4645,
+   "dd": 0.5047
+  },
+  {
+   "decile": 5,
+   "dd_lo": -25.7,
+   "dd_hi": -22.5,
+   "n": 5879,
+   "pos_pct": 7.3,
+   "tear": 0.472,
+   "dd": 0.4882
+  },
+  {
+   "decile": 6,
+   "dd_lo": -22.5,
+   "dd_hi": -20.0,
+   "n": 5880,
+   "pos_pct": 8.8,
+   "tear": 0.4789,
+   "dd": 0.5206
+  },
+  {
+   "decile": 7,
+   "dd_lo": -20.0,
+   "dd_hi": -17.6,
+   "n": 5879,
+   "pos_pct": 12.5,
+   "tear": 0.5151,
+   "dd": 0.519
+  },
+  {
+   "decile": 8,
+   "dd_lo": -17.6,
+   "dd_hi": -15.3,
+   "n": 5880,
+   "pos_pct": 15.3,
+   "tear": 0.4917,
+   "dd": 0.5092
+  },
+  {
+   "decile": 9,
+   "dd_lo": -15.3,
+   "dd_hi": -12.5,
+   "n": 5879,
+   "pos_pct": 16.7,
+   "tear": 0.5079,
+   "dd": 0.5294
+  },
+  {
+   "decile": 10,
+   "dd_lo": -12.5,
+   "dd_hi": 0.0,
+   "n": 5880,
+   "pos_pct": 19.3,
+   "tear": 0.477,
+   "dd": 0.4839
+  }
+ ],
+ "generated": "2026-11-20 20:06",
+ "design": {
+  "unit": "industry×trading-day",
+  "window": [
+   "2024-01-01",
+   "2026-08-26"
+  ],
+  "h": 10,
+  "within_day_identical": true,
+  "dd_lookback": 250,
+  "event_mode": "jump",
+  "ret_thr": -0.05,
+  "jump_w": 24,
+  "jump_eta": 0.01,
+  "jump_src": "Yeganeh et al. (2026) E2, 10.1016/j.eswa.2026.132485",
+  "tier_severe": -5.0,
+  "merge_gap_weeks": 3,
+  "min_members": 8
+ },
+ "n_industries": 110,
+ "n_industries_used": 100,
+ "n_used": {
+  "全部": 100,
+  "科技": 32,
+  "传统": 68
+ },
+ "n_events": 1083,
+ "n_event_weeks": 86,
+ "event_weeks_top": [
+  [
+   "2025-W47",
+   83
+  ],
+  [
+   "2024-W23",
+   77
+  ],
+  [
+   "2025-W36",
+   59
+  ],
+  [
+   "2024-W34",
+   57
+  ],
+  [
+   "2024-W52",
+   54
+  ]
+ ],
+ "n_sample": 63444,
+ "n_pos": 6498,
+ "result": {
+  "全部": {
+   "n": 58795,
+   "n_pos": 6486,
+   "n_days": 642,
+   "n_perm": 161,
+   "perm_step": 4,
+   "perm_kind": "structure-preserving circular shift over the date axis",
+   "metrics": {
+    "tear": {
+     "auc": 0.5148,
+     "p": 0.0062,
+     "null_p95": 0.5094
+    },
+    "d": {
+     "auc": 0.5592,
+     "p": 0.0062,
+     "null_p95": 0.5369
+    },
+    "streak": {
+     "auc": 0.5353,
+     "p": 0.0062,
+     "null_p95": 0.5256
+    },
+    "dd": {
+     "auc": 0.6197,
+     "p": 0.0062,
+     "null_p95": 0.5492
+    },
+    "tear⊥dd": {
+     "auc": 0.4893,
+     "p": 0.8765,
+     "null_p95": 0.51
+    },
+    "d⊥dd": {
+     "auc": 0.51,
+     "p": 0.284,
+     "null_p95": 0.5241
+    },
+    "streak⊥dd": {
+     "auc": 0.4991,
+     "p": 0.4259,
+     "null_p95": 0.5196
+    },
+    "dd⊥tear": {
+     "auc": 0.6192,
+     "p": 0.0123,
+     "null_p95": 0.5495
+    }
+   },
+   "pairs": {
+    "tear-dd": {
+     "delta": -0.1049,
+     "p": 0.0123,
+     "floor": 0.0539
+    },
+    "tear-d": {
+     "delta": -0.0444,
+     "p": 0.0123,
+     "floor": 0.0308
+    },
+    "d-dd": {
+     "delta": -0.0605,
+     "p": 0.0123,
+     "floor": 0.0416
+    },
+    "d-streak": {
+     "delta": 0.0239,
+     "p": 0.0123,
+     "floor": 0.0177
+    }
+   }
+  },
+  "科技": {
+   "n": 18854,
+   "n_pos": 2028,
+   "n_days": 642,
+   "n_perm": 161,
+   "perm_step": 4,
+   "perm_kind": "structure-preserving circular shift over the date axis",
+   "metrics": {
+    "tear": {
+     "auc": 0.5235,
+     "p": 0.0679,
+     "null_p95": 0.5248
+    },
+    "d": {
+     "auc": 0.5569,
+     "p": 0.0062,
+     "null_p95": 0.5392
+    },
+    "streak": {
+     "auc": 0.5351,
+     "p": 0.0247,
+     "null_p95": 0.5299
+    },
+    "dd": {
+     "auc": 0.6301,
+     "p": 0.0123,
+     "null_p95": 0.5585
+    },
+    "tear⊥dd": {
+     "auc": 0.4778,
+     "p": 0.9012,
+     "null_p95": 0.5227
+    },
+    "d⊥dd": {
+     "auc": 0.4862,
+     "p": 0.716,
+     "null_p95": 0.5356
+    },
+    "streak⊥dd": {
+     "auc": 0.4775,
+     "p": 0.8765,
+     "null_p95": 0.5281
+    },
+    "dd⊥tear": {
+     "auc": 0.6312,
+     "p": 0.0123,
+     "null_p95": 0.5555
+    }
+   }
+  },
+  "传统": {
+   "n": 39941,
+   "n_pos": 4458,
+   "n_days": 642,
+   "n_perm": 161,
+   "perm_step": 4,
+   "perm_kind": "structure-preserving circular shift over the date axis",
+   "metrics": {
+    "tear": {
+     "auc": 0.5113,
+     "p": 0.0247,
+     "null_p95": 0.5086
+    },
+    "d": {
+     "auc": 0.561,
+     "p": 0.0062,
+     "null_p95": 0.5343
+    },
+    "streak": {
+     "auc": 0.5358,
+     "p": 0.0123,
+     "null_p95": 0.5233
+    },
+    "dd": {
+     "auc": 0.6143,
+     "p": 0.0123,
+     "null_p95": 0.545
+    },
+    "tear⊥dd": {
+     "auc": 0.4942,
+     "p": 0.7346,
+     "null_p95": 0.5101
+    },
+    "d⊥dd": {
+     "auc": 0.5207,
+     "p": 0.0802,
+     "null_p95": 0.5244
+    },
+    "streak⊥dd": {
+     "auc": 0.5068,
+     "p": 0.2407,
+     "null_p95": 0.5173
+    },
+    "dd⊥tear": {
+     "auc": 0.6139,
+     "p": 0.0123,
+     "null_p95": 0.5456
+    }
+   }
+  }
+ }
+}

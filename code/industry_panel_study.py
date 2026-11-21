@@ -73,9 +73,19 @@ FZ = SCRIPT_DIR / "frozen"
 # 于是「先跑 return 再跑 dd」时 dd 口径把中性口径的结果整个覆盖，
 # 论文与发布包印出的 725 事件 / tear 0.5530 全是旧 Δdd 口径的数 ——
 # 而 §5.6 整节存在的理由正是消除那个口径的机械偏袒。文件名必须自带口径。
+# 2026-11-20 加第三个口径时发现：原来是三元表达式，
+# 任何新口径都会落到 else 那一支、覆盖 dd 口径的结果 —— 正是上面那次事故的复发。
+# 改成显式映射，未登记的口径直接抛错而不是悄悄写到别人的文件上。
+OUT_BY_MODE = {"return": "industry_panel.json",
+               "dd": "industry_panel_dd.json",
+               "jump": "industry_panel_jump.json"}
+
+
 def out_path(mode):
-    return SCRIPT_DIR / ("industry_panel.json" if mode == "return"
-                         else "industry_panel_dd.json")
+    if mode not in OUT_BY_MODE:
+        raise SystemExit(f"✗ 口径 {mode} 没有登记产出文件名 —— "
+                         "补进 OUT_BY_MODE，别让它覆盖别人的结果")
+    return SCRIPT_DIR / OUT_BY_MODE[mode]
 CACHE = SCRIPT_DIR / ".industry_dd_cache.json"
 RET_CACHE = SCRIPT_DIR / ".industry_ret_cache.json"
 
@@ -154,6 +164,65 @@ def build_ret_panel(members):
     return out
 
 
+def onsets_jump(ret_by_date, w, eta):
+    """第三个事件口径：Yeganeh et al. (2026) 的向下跳跃 E2，原样移植。
+
+    ━━ 为什么要第三个口径 ━━
+    §5.6 现有两个口径（Δdd 与收益率）**都是本文自己选的**，所以
+    「dd 解耦后失去显著性」这个结论可以被反问一句：那是不是你们的选择造出来的。
+    FINR 审稿人 1 指给我们的那篇论文里有一个**第三方**事件定义，
+    把它原样搬过来跑一遍，就把这句反问关掉 —— 或者，如果结论不成立，
+    就为主张划出边界。两种结果都比没有检验好。
+
+    ━━ 原文定义（4 小时 K 线）━━
+        E₂(t) = 1  ⟺  P_t < min{P_{t−W}, …, P_{t−1}} · (1 − η)
+    即收盘价跌破前 W 根 K 线最低收盘价的 (1−η) 倍。原文 W = 24、η = 0.01。
+    原文另有向上跳跃 E₁（突破滚动最高价），方向与深度下跌相反，本文不用。
+
+    ━━ 移植时只改了一件事：K 线频率 ━━
+    原文是 4 小时线，本文是日线；W 与 η **沿用原文取值**，不另行挑选 ——
+    这正是本检验的要点：事件定义不能是我们挑的。
+
+    ━━ 为什么这个口径与 dd 共用参照物 ━━
+    E₂ 说的是「价格创了 W 期新低」，而 dd = 收盘/滚动峰值 − 1。
+    一旦创新低，dd 就处在它自己近期区间的最负处 —— 于是
+    「E₂ 发生」几乎等价于「dd 的**水平**处于极端」。
+    这与 Δdd 口径的耦合不是同一种（那里是差分与水平通过恒等式相连），
+    但同属一族：**事件与对照共用同一个参照物**。
+    价格指数由收益累乘而得；E₂ 是比率条件，与指数的标度无关。
+    """
+    ds = sorted(ret_by_date)
+    if len(ds) <= w:
+        return []
+    px, c = {}, 1.0
+    for d in ds:
+        c *= (1 + ret_by_date[d])
+        px[d] = c
+    hits = []
+    for i in range(w, len(ds)):
+        win = [px[ds[j]] for j in range(i - w, i)]
+        if px[ds[i]] < min(win) * (1 - eta):
+            hits.append(ds[i])
+    byw = defaultdict(list)
+    for d in hits:
+        byw[isoweek(d)].append(d)
+    # 与另两个口径同一条合并规则：相隔 ≤MERGE_GAP 周的并为同一次。
+    # 不并会让一段下跌里的连续新低各记一次事件，三个口径就不可比了。
+    allw = sorted({isoweek(d) for d in ds})
+    idx = {w_: i for i, w_ in enumerate(allw)}
+    ev, prev = [], None
+    for w_ in sorted(byw):
+        i = idx.get(w_)
+        if i is None:
+            continue
+        if prev is not None and i - prev <= MERGE_GAP:
+            prev = i
+            continue
+        ev.append({"week": w_, "date": max(byw[w_]), "n_hit": len(byw[w_])})
+        prev = i
+    return ev
+
+
 def onsets_ret(ret_by_date, thr):
     """中性事件：周度复合收益 ≤ thr。门槛对所有行业、所有时点相同，与 dd 无关。"""
     byw = defaultdict(list)
@@ -206,11 +275,20 @@ def main():
     ap.add_argument("--rebuild", action="store_true", help="忽略 dd 缓存，重算")
     ap.add_argument("--h", type=int, default=EVAL_H,
                     help=f"前瞻窗（交易日），默认 {EVAL_H} 与论文一致")
-    ap.add_argument("--event-mode", choices=("return", "dd"), default="return",
+    ap.add_argument("--event-mode", choices=("return", "dd", "jump"),
+                    default="return",
                     help="事件定义。return=周收益≤门槛（与 dd 无机械关联，默认）；"
-                         "dd=周度 Δdd≤分档线（旧口径，供对照）")
+                         "dd=周度 Δdd≤分档线（旧口径，供对照）；"
+                         "jump=Yeganeh et al. 2026 的向下跳跃 E2（第三方口径）")
+    ap.add_argument("--jump-w", type=int, default=24,
+                    help="jump 口径的回溯窗（期）。默认 24，沿用原文取值不另选")
+    ap.add_argument("--jump-eta", type=float, default=0.01,
+                    help="jump 口径的突破敏感度 η。默认 0.01，沿用原文取值不另选")
     ap.add_argument("--ret-thr", type=float, default=RET_THR,
                     help=f"return 模式的周收益门槛，默认 {RET_THR}")
+    ap.add_argument("--dump-rows", metavar="PATH", default=None,
+                    help="把面板样本行导出到 PATH（供回归等下游复用）。"
+                         "只增不改：不传这个旗标时行为与以往完全一致")
     ap.add_argument("--tier", type=float, default=TIER_SEVERE,
                     help=f"事件分档线 Δdd，默认 {TIER_SEVERE}（SEVERE）；"
                          f"-3.0 为 MODERATE，事件更多")
@@ -219,7 +297,24 @@ def main():
     print(f"  参数 h={EVAL_H}  分档线 Δdd≤{TIER_SEVERE}")
 
     print("═══ 行业面板前瞻检验 ═══")
-    tc = json.loads((FZ / "t_causal_paper.json").read_text())["industries"]
+    # t_causal_paper.json 有 23 MB，不进发布包，于是包内曾无法复算本节
+    # （FINR 审稿人 1 2026-11-18 正是要求能验这里的 AUC 与置换 p）。
+    # freeze_industry_panel.py 现在另出一份只含 r 的裁窗副本（1.3 MB）。
+    # 本脚本优先读原件，缺了就读副本并重整成同一形状，下游零改动。
+    _tcp = FZ / "t_causal_paper.json"
+    if _tcp.exists():
+        tc = json.loads(_tcp.read_text())["industries"]
+    else:
+        _alt = FZ / "industry_d_paper.json"
+        if not _alt.exists():
+            raise SystemExit(
+                "✗ 既无 frozen/t_causal_paper.json 也无 frozen/"
+                "industry_d_paper.json —— 先跑 paper_freeze.py 或 "
+                "freeze_industry_panel.py")
+        tc = {ind: {"dates": {d: {"r": v} for d, v in ser.items()}}
+              for ind, ser in json.loads(_alt.read_text()).items()}
+        print(f"  d 序列取自裁窗副本 industry_d_paper.json"
+              f"（{len(tc)} 个行业，原件不在本目录）")
     cls = json.loads((SCRIPT_DIR / "industry_classification.json").read_text())
     members = defaultdict(list)
     for c, v in cls.items():
@@ -247,6 +342,19 @@ def main():
                                             separators=(",", ":")))
         ev = {ind: onsets_ret(rp.get(ind, {}), a.ret_thr) for ind in dd}
         print(f"  事件定义：周收益 ≤ {a.ret_thr:.0%}（中性，与 dd 无机械关联）")
+    elif a.event_mode == "jump":
+        if RET_CACHE.exists() and not a.rebuild:
+            rp = json.loads(RET_CACHE.read_text())
+            print(f"  收益面板取自缓存（{len(rp)} 个行业）")
+        else:
+            rp = build_ret_panel(members)
+            RET_CACHE.write_text(json.dumps(rp, ensure_ascii=False,
+                                            separators=(",", ":")))
+        ev = {ind: onsets_jump(rp.get(ind, {}), a.jump_w, a.jump_eta)
+              for ind in dd}
+        print(f"  事件定义：向下跳跃 E2，跌破前 {a.jump_w} 期最低价的 "
+              f"{1 - a.jump_eta:.2f} 倍"
+              f"（Yeganeh et al. 2026 的口径，W 与 η 沿用原文）")
     else:
         ev = {ind: onsets(v) for ind, v in dd.items()}
         print(f"  事件定义：周度 Δdd ≤ {TIER_SEVERE}（旧口径，与 dd 共用底层量）")
@@ -284,7 +392,34 @@ def main():
             trad_med[dt_] = st.median(vs)
     print(f"  科技 {len(tech_list & set(tc))} / 传统 {len(set(tc) - tech_list)} 行业；"
           f"传统组中位 d 覆盖 {len(trad_med)}/{len(axis)} 日")
+    # ── 已实现波动率：只在导出样本时算 ──
+    # 为什么需要它：dd（该行业自身的回撤深度）在回归里吃掉了全部解释力，
+    # 但 dd 与事件（周收益 ≤ −5%）之间还剩一条非解析的通道 ——
+    # **深度回撤中的行业波动更大，出现任何一个 −5% 周的概率本就更高**。
+    # 若不控波动率，dd 的系数就是在替波动率打工，估值类的量被它挤掉
+    # 并不能说明估值没有信息。这是审稿人必问的一条。
+    # 口径：过去 20 个交易日（含当日）收益的样本标准差，因果、可在 t 日算出。
+    vol_by = {}
+    if a.dump_rows:
+        rp_v = (rp if a.event_mode == "return"
+                else (json.loads(RET_CACHE.read_text())
+                      if RET_CACHE.exists() else {}))
+        for ind_, byd in rp_v.items():
+            ds = sorted(byd)
+            vals = [byd[d_] for d_ in ds]
+            cur = {}
+            for i_ in range(len(ds)):
+                w_ = vals[max(0, i_ - 19): i_ + 1]
+                cur[ds[i_]] = (round(st.stdev(w_), 6) if len(w_) >= 10 else None)
+            vol_by[ind_] = cur
+        print(f"  已实现波动率：{len(vol_by)} 个行业（20 日，含当日）")
+
     rows, skipped = [], 0
+    # 检测侧样本：事件当周内的行（上面被 inside 剔掉的那些）。
+    # §5.6 必须剔它们 —— 检测≠预报，混进来就是拿事中数据冒充事前。
+    # 但「同量反号」这个主张**恰恰需要**它们：要证明 d 在事中偏低、事前偏高，
+    # 就得同时有两侧的样本。所以另存一份，不进 rows，不影响任何既有结果。
+    det_rows = []
     for ind in sorted(dd):
         dts = tc.get(ind, {}).get("dates", {})
         ev_idx = sorted(pos[e["date"]] for e in ev.get(ind, []) if e["date"] in pos)
@@ -299,9 +434,17 @@ def main():
             r = cell.get("r")
             dv = None if r is None else r - 1
             streak = streak + 1 if (dv is not None and dv > 0) else 0
-            if dv is None or i in inside:
+            if dv is None:
                 continue
             tm = trad_med.get(d)
+            if i in inside:
+                det_rows.append({"ind": ind, "i": i, "date": d,
+                                 "d": round(dv, 5), "tech": ind in tech_list,
+                                 "tear": None if tm is None else round(dv - tm, 5),
+                                 "streak": streak, "dd": dd[ind].get(d),
+                                 "vol": vol_by.get(ind, {}).get(d),
+                                 "det": True})
+                continue
             rows.append({"ind": ind, "i": i, "date": d, "d": round(dv, 5),
                          "tech": ind in tech_list,
                          # 撕裂：该行业相对传统组中位的估值位置 —— 论文 gap 的解聚
@@ -310,10 +453,26 @@ def main():
                          # 朴素价格对照：该行业自身的当前回撤。零估值依赖，
                          # 是「不需要 cap / T / 财报就能算」的那一类量。
                          "dd": dd[ind].get(d),
+                         "vol": vol_by.get(ind, {}).get(d),
+                         "det": False,
                          "y": any(i < j <= i + EVAL_H for j in ev_idx)})
     n, npos = len(rows), sum(1 for r in rows if r["y"])
     print(f"\n  面板样本 {n} 个（行业×交易日），阳性 {npos}"
           f"　| 无事件而未贡献阳性的行业 {skipped}")
+
+    # 下游（面板回归）必须用**与本脚本完全相同**的样本，否则论文里会出现
+    # 两个口径不同的面板。所以不让下游各自重建一遍，而是从这里导出：
+    # 单一生产者，样本只有一处定义。导出是旗标触发的，默认路径一字未动。
+    if a.dump_rows:
+        Path(a.dump_rows).write_text(json.dumps(
+            {"design": {"unit": "industry×trading-day", "window": [W0, W1],
+                        "h": EVAL_H, "event_mode": a.event_mode,
+                        "ret_thr": a.ret_thr, "tier_severe": TIER_SEVERE,
+                        "n_events": n_ev},
+             "rows": rows, "det_rows": det_rows},
+            ensure_ascii=False, separators=(",", ":")))
+        print(f"  → 样本行已导出 {a.dump_rows}"
+              f"（预报侧 {n} 行 + 检测侧 {len(det_rows)} 行）")
 
     # ── 评估：三个子组 × 全部候选量，同一套置换零分布 ──
     # 子组必做：论文的故事是关于科技的，若增量只在合并样本上成立而在科技组内
@@ -367,7 +526,13 @@ def main():
         V["d⊥dd"] = resid_on(V["d"], V["dd"])
         V["streak⊥dd"] = resid_on(V["streak"], V["dd"])
         V["dd⊥tear"] = resid_on(V["dd"], V["tear"])
-        g = {"n": len(R), "n_pos": sum(lab_g), "n_days": len(ia), "metrics": {}}
+        # 置换次数要落盘：编辑清单明写「clearly state the number of replicates
+        # used in each experiment」，而它此前只由 len(ia)//150 隐式决定，
+        # 散文里现算等于让它随轴长悄悄变而没人记录。
+        g = {"n": len(R), "n_pos": sum(lab_g), "n_days": len(ia),
+             "n_perm": len(perms), "perm_step": step,
+             "perm_kind": "structure-preserving circular shift over the date axis",
+             "metrics": {}}
         print(f"\n  ═══ {gname}  n={len(R)}  阳性 {sum(lab_g)} ═══")
         for key, v in V.items():
             obs = _auc(v, lab_g)
@@ -425,6 +590,9 @@ def main():
         "design": {"unit": "industry×trading-day", "window": [W0, W1],
                    "h": EVAL_H, "within_day_identical": True, "dd_lookback": DD_LOOKBACK,
                    "event_mode": a.event_mode, "ret_thr": a.ret_thr,
+                   "jump_w": a.jump_w, "jump_eta": a.jump_eta,
+                   "jump_src": "Yeganeh et al. (2026) E2, "
+                               "10.1016/j.eswa.2026.132485",
                    "tier_severe": TIER_SEVERE, "merge_gap_weeks": MERGE_GAP,
                    "min_members": MIN_MEMBERS},
         # len(dd) 含窗内无数据的空序列（2026-09-25 实测 110 键里 10 个为空）。

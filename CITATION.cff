@@ -3,7 +3,7 @@ message: 若本仓库对你的研究有帮助，请按下列方式引用。
 # 主题名用英文：这份数据集随英文论文投国际期刊，引用它的文献列表也是英文。
 # 中文题名作为译名保留在 Zenodo 记录的 Additional titles（Translated title）里，
 # CFF 只支持单一 title，故以英文为准。2026-09-27 与 Zenodo 一并改，DOI 未变。
-title: "Valuation Tearing and Deep Drawdowns: A Leading Measure and a Three-Layer Decision System for China's A-Share AI Economy (frozen datasets and construction code)"
+title: "A Coupling Diagnostic for Event-Based Forecast Evaluation, with Evidence on Valuation Divergence and Deep Drawdowns in China (frozen datasets and construction code)"
 abstract: >-
   Frozen datasets and construction code released alongside the paper of the
   same name. The data span 642 trading days from 2024-01-01 to 2026-08-26 and
