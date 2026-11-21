@@ -5,11 +5,13 @@
   "creators": [
     {
       "name": "Dou, Yumei",
-      "affiliation": "InAI Capital Advisor LLC"
+      "affiliation": "InAI Capital Advisor LLC",
+      "orcid": "0009-0008-8707-100X"
     },
     {
       "name": "Li, Xinrong",
-      "affiliation": "Palo Alto High School"
+      "affiliation": "Palo Alto High School",
+      "orcid": "0009-0004-9267-3102"
     }
   ],
   "license": "cc-by-4.0",
