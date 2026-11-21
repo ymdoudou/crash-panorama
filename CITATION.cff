@@ -16,8 +16,8 @@ abstract: >-
   number printed in the paper can be recomputed from the released data by
   reproduce.py and compared item by item.
 type: dataset
-doi: 10.5281/zenodo.22953101
-version: v1.2
+doi: 10.5281/zenodo.24414762
+version: v1.3
 authors:
   - family-names: Dou
     given-names: Yumei
@@ -31,8 +31,11 @@ license-url: https://github.com/ymdoudou/crash-panorama/blob/main/LICENSE
 repository-code: https://github.com/ymdoudou/crash-panorama
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.24414762
+    description: 本版本（v1.3）的 DOI，论文引用的就是它
+  - type: doi
     value: 10.5281/zenodo.22953101
-    description: 本版本（v1.2）的 DOI，论文引用的就是它
+    description: v1.2 的 DOI
   - type: doi
     value: 10.5281/zenodo.22668713
     description: v1.1 的 DOI

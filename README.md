@@ -6,7 +6,7 @@ monitor for the AI-economy sectors of the China A-share market
 **English** | [中文](#中文说明)
 
 Data through **2026-08-26**; frozen window 2024-01-01 to 2026-08-26,
-642 trading days. Snapshot generated 2026-11-21 15:07 (Beijing time).
+642 trading days. Snapshot generated 2026-11-21 16:31 (Beijing time).
 
 ```
 data/   24 datasets   every input behind the paper's results, all taken from the frozen region
@@ -130,7 +130,7 @@ See `LICENSE`. Cite via `CITATION.cff` or the DOI recorded there.
 [English](#valuation-tearing-and-deep-drawdowns) | **中文**
 
 数据截止日 **2026-08-26**；冻结窗口 2024-01-01 ~ 2026-08-26，642 个交易日。
-本快照生成于 2026-11-21 15:07（北京时间）。
+本快照生成于 2026-11-21 16:31（北京时间）。
 
 ```
 data/   24 个数据集     论文全部结论的输入，全部取自冻结区
